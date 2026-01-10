@@ -1,0 +1,38 @@
+name: Update Compass Data
+
+on:
+  schedule:
+    # Ejecutar de lunes a viernes a las 9:30 PM UTC (después del cierre del mercado US)
+    - cron: '30 21 * * 1-5'
+  
+  # Permitir ejecución manual desde GitHub
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install yfinance pandas numpy
+    
+    - name: Fetch options data
+      run: |
+        python fetch_options_data.py
+    
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add compass-data.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update compass data - $(date +'%Y-%m-%d %H:%M:%S')" && git push)
