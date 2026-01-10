@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compass Â· IV & Skew Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Merriweather:wght@300;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-bg: #0a0e1a;
+            --color-surface: #141824;
+            --color-border: #1e2433;
+            --color-text: #e2e8f0;
+            --color-text-dim: #64748b;
+            --color-accent-blue: #3b82f6;
+            --color-accent-green: #10b981;
+            --color-accent-orange: #f59e0b;
+            --color-accent-red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--color-bg);
+            color: var(--color-text);
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+            font-family: 'Merriweather', serif;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--color-text) 0%, var(--color-accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--color-text-dim);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .metrics-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 1s ease 0.2s both;
+        }
+
+        .metric-card {
+            background: var(--color-surface);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: var(--color-accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--color-text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .chart-container {
+            background: var(--color-surface);
+            border-radius: 16px;
+            border: 1px solid var(--color-border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 1.2s ease 0.4s both;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .chart-title {
+            font-family: 'Merriweather', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .legend {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.8125rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        #compass {
+            width: 100%;
+            height: 600px;
+            cursor: crosshair;
+        }
+
+        .quadrant-labels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            animation: fadeIn 1.4s ease 0.6s both;
+        }
+
+        .quadrant-label {
+            background: var(--color-surface);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            font-size: 0.875rem;
+        }
+
+        .quadrant-label strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .quadrant-label span {
+            color: var(--color-text-dim);
+            font-size: 0.75rem;
+        }
+
+        .q1 { border-left: 3px solid var(--color-accent-green); }
+        .q2 { border-left: 3px solid var(--color-accent-orange); }
+        .q3 { border-left: 3px solid var(--color-accent-red); }
+        .q4 { border-left: 3px solid var(--color-accent-blue); }
+
+        .tooltip {
+            position: fixed;
+            background: rgba(20, 24, 36, 0.98);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.8125rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-symbol {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--color-accent-blue);
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.25rem 0;
+            gap: 1rem;
+        }
+
+        .tooltip-label {
+            color: var(--color-text-dim);
+        }
+
+        .tooltip-value {
+            font-weight: 600;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-dim);
+            font-size: 0.8125rem;
+        }
+
+        .info-panel {
+            background: var(--color-surface);
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            animation: fadeIn 1.6s ease 0.8s both;
+        }
+
+        .info-panel h3 {
+            font-family: 'Merriweather', serif;
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-panel ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-panel li {
+            padding: 0.5rem 0;
+            color: var(--color-text-dim);
+            font-size: 0.875rem;
+        }
+
+        .info-panel li::before {
+            content: "â†’";
+            color: var(--color-accent-blue);
+            margin-right: 0.5rem;
+        }
+
+        .demo-badge {
+            display: inline-block;
+            background: var(--color-accent-orange);
+            color: var(--color-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .legend {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            #compass {
+                height: 400px;
+            }
+            
+            .quadrant-labels {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">
+                Compass
+                <span class="demo-badge">DEMO</span>
+            </h1>
+            <p class="subtitle">IV Rank vs Risk Reversal Rank Â· Options Market Analysis</p>
+        </div>
+
+        <div class="metrics-bar">
+            <div class="metric-card">
+                <div class="metric-label">SÃ­mbolos</div>
+                <div class="metric-value" id="totalSymbols">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">IV Promedio</div>
+                <div class="metric-value" id="avgIV">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Estado</div>
+                <div class="metric-value" style="font-size: 1.25rem;">Datos de Ejemplo</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <h2 class="chart-title">Market Positioning Map</h2>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--color-accent-green);"></div>
+                        <span>Bullish</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--color-accent-orange);"></div>
+                        <span>Neutral</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: var(--color-accent-red);"></div>
+                        <span>Bearish</span>
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="compass"></canvas>
+        </div>
+
+        <div class="quadrant-labels">
+            <div class="quadrant-label q1">
+                <strong>Q1: Alto IV, Call Skew</strong>
+                <span>Volatilidad alta + expectativas alcistas â†’ Evento prÃ³ximo o rally esperado</span>
+            </div>
+            <div class="quadrant-label q2">
+                <strong>Q2: Bajo IV, Call Skew</strong>
+                <span>Opciones baratas + sesgo alcista â†’ Oportunidad para comprar calls</span>
+            </div>
+            <div class="quadrant-label q3">
+                <strong>Q3: Bajo IV, Put Skew</strong>
+                <span>Baja volatilidad + protecciÃ³n bajista â†’ Inicio de cautela</span>
+            </div>
+            <div class="quadrant-label q4">
+                <strong>Q4: Alto IV, Put Skew</strong>
+                <span>Volatilidad alta + miedo â†’ ProtecciÃ³n cara, mercado nervioso</span>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h3>CÃ³mo interpretar el Compass</h3>
+            <ul>
+                <li><strong>Eje X (IV Rank):</strong> DÃ³nde estÃ¡ la volatilidad implÃ­cita actual vs el Ãºltimo aÃ±o (0-100%)</li>
+                <li><strong>Eje Y (Skew Rank):</strong> Diferencia entre IV de calls vs puts</li>
+                <li><strong>Cada punto:</strong> Representa un stock/futuro con su posicionamiento actual</li>
+                <li><strong>Hover sobre puntos:</strong> Ver detalles especÃ­ficos del sÃ­mbolo</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Datos de ejemplo para demostraciÃ³n Â· Para datos reales, ver instrucciones abajo</p>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-symbol" id="tooltipSymbol"></div>
+        <div class="tooltip-row">
+            <span class="tooltip-label">IV Rank:</span>
+            <span class="tooltip-value" id="tooltipIVRank"></span>
+        </div>
+        <div class="tooltip-row">
+            <span class="tooltip-label">Skew Rank:</span>
+            <span class="tooltip-value" id="tooltipSkewRank"></span>
+        </div>
+        <div class="tooltip-row">
+            <span class="tooltip-label">Current IV:</span>
+            <span class="tooltip-value" id="tooltipIV"></span>
+        </div>
+        <div class="tooltip-row">
+            <span class="tooltip-label">Risk Reversal:</span>
+            <span class="tooltip-value" id="tooltipRR"></span>
+        </div>
+    </div>
+
+    <script>
+        // DATOS DE EJEMPLO (fallback si no se puede cargar el JSON)
+        const EXAMPLE_DATA = [
+            { symbol: 'AAPL', iv_rank: 45.2, skew_rank: 68.5, current_iv: 28.3, risk_reversal: 2.5 },
+            { symbol: 'MSFT', iv_rank: 52.1, skew_rank: 72.3, current_iv: 25.1, risk_reversal: 3.1 },
+            { symbol: 'GOOGL', iv_rank: 38.7, skew_rank: 65.2, current_iv: 31.2, risk_reversal: 1.8 },
+            { symbol: 'AMZN', iv_rank: 61.3, skew_rank: 55.8, current_iv: 35.6, risk_reversal: 0.5 },
+            { symbol: 'META', iv_rank: 55.9, skew_rank: 78.2, current_iv: 42.1, risk_reversal: 4.2 },
+            { symbol: 'NVDA', iv_rank: 72.4, skew_rank: 82.5, current_iv: 51.3, risk_reversal: 5.8 },
+            { symbol: 'TSLA', iv_rank: 78.3, skew_rank: 45.2, current_iv: 58.7, risk_reversal: -1.2 },
+            { symbol: 'JPM', iv_rank: 32.1, skew_rank: 38.5, current_iv: 22.5, risk_reversal: -2.5 },
+            { symbol: 'BAC', iv_rank: 28.5, skew_rank: 35.2, current_iv: 24.8, risk_reversal: -2.8 },
+            { symbol: 'WFC', iv_rank: 35.2, skew_rank: 42.1, current_iv: 21.3, risk_reversal: -1.9 },
+            { symbol: 'DIS', iv_rank: 48.7, skew_rank: 58.3, current_iv: 29.5, risk_reversal: 0.8 },
+            { symbol: 'NFLX', iv_rank: 68.2, skew_rank: 62.1, current_iv: 45.2, risk_reversal: 1.5 },
+            { symbol: 'AMD', iv_rank: 65.3, skew_rank: 75.8, current_iv: 48.9, risk_reversal: 3.8 },
+            { symbol: 'INTC', iv_rank: 42.1, skew_rank: 48.5, current_iv: 32.1, risk_reversal: -0.5 },
+            { symbol: 'SPY', iv_rank: 25.8, skew_rank: 32.5, current_iv: 15.2, risk_reversal: -3.2 },
+            { symbol: 'QQQ', iv_rank: 32.5, skew_rank: 45.8, current_iv: 18.5, risk_reversal: -1.5 },
+            { symbol: 'IWM', iv_rank: 38.2, skew_rank: 28.5, current_iv: 22.8, risk_reversal: -4.2 },
+            { symbol: 'TLT', iv_rank: 58.3, skew_rank: 35.2, current_iv: 12.5, risk_reversal: -2.8 },
+            { symbol: 'COIN', iv_rank: 82.5, skew_rank: 55.2, current_iv: 68.5, risk_reversal: 0.2 },
+            { symbol: 'PLTR', iv_rank: 75.2, skew_rank: 85.3, current_iv: 62.1, risk_reversal: 6.5 },
+            { symbol: 'SOFI', iv_rank: 71.8, skew_rank: 68.5, current_iv: 55.3, risk_reversal: 2.8 },
+            { symbol: 'UBER', iv_rank: 52.3, skew_rank: 62.1, current_iv: 38.5, risk_reversal: 1.8 },
+        ];
+
+        // Variables globales
+        let compassData = [];
+        let lastUpdated = null;
+        let isRealData = false;
+
+        const canvas = document.getElementById('compass');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('tooltip');
+
+        // CONFIGURACIÓN: Cambia esto con tu usuario y repo de GitHub
+        // Formato: 'https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/compass-data.json'
+        const DATA_URL = './compass-data.json'; // Primero intenta cargar localmente
+        const GITHUB_DATA_URL = ''; // Déjalo vacío si no has configurado GitHub aún
+
+        // ConfiguraciÃ³n del canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth - 64;
+            canvas.height = 600;
+        }
+
+        // Cargar datos desde JSON
+        async function loadData() {
+            const statusElement = document.querySelector('.metric-card:last-child .metric-value');
+            statusElement.textContent = 'Cargando...';
+            
+            try {
+                // Intentar cargar desde GitHub primero (si está configurado)
+                if (GITHUB_DATA_URL) {
+                    try {
+                        const response = await fetch(GITHUB_DATA_URL);
+                        if (response.ok) {
+                            const jsonData = await response.json();
+                            compassData = jsonData.data;
+                            lastUpdated = new Date(jsonData.last_updated);
+                            isRealData = true;
+                            statusElement.innerHTML = `Datos Reales<br><small style="font-size: 0.7rem; opacity: 0.7;">${formatDate(lastUpdated)}</small>`;
+                            console.log('✓ Datos cargados desde GitHub');
+                            return;
+                        }
+                    } catch (e) {
+                        console.log('GitHub no disponible, intentando carga local...');
+                    }
+                }
+                
+                // Intentar cargar localmente
+                try {
+                    const response = await fetch(DATA_URL);
+                    if (response.ok) {
+                        const jsonData = await response.json();
+                        compassData = jsonData.data;
+                        lastUpdated = new Date(jsonData.last_updated);
+                        isRealData = true;
+                        statusElement.innerHTML = `Datos Reales<br><small style="font-size: 0.7rem; opacity: 0.7;">${formatDate(lastUpdated)}</small>`;
+                        console.log('✓ Datos cargados localmente');
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Archivo local no encontrado');
+                }
+                
+                // Si todo falla, usar datos de ejemplo
+                throw new Error('No se pudo cargar datos reales');
+                
+            } catch (error) {
+                console.log('Usando datos de ejemplo');
+                compassData = EXAMPLE_DATA;
+                isRealData = false;
+                statusElement.textContent = 'Datos de Ejemplo';
+            }
+        }
+
+        function formatDate(date) {
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            return date.toLocaleDateString('es-ES', options);
+        }
+
+        function initialize() {
+            // Actualizar métricas
+            document.getElementById('totalSymbols').textContent = compassData.length;
+            
+            const avgIV = compassData.reduce((sum, item) => sum + item.current_iv, 0) / compassData.length;
+            document.getElementById('avgIV').textContent = avgIV.toFixed(1) + '%';
+            
+            // Dibujar
+            drawCompass();
+        }
+
+        function drawCompass() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 60;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            drawQuadrants(width, height, padding);
+            drawAxes(width, height, padding);
+            drawPoints(width, height, padding);
+        }
+
+        function drawQuadrants(width, height, padding) {
+            const midX = padding + (width - 2 * padding) / 2;
+            const midY = padding + (height - 2 * padding) / 2;
+            const rightX = width - padding;
+            const bottomY = height - padding;
+            
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.05)';
+            ctx.fillRect(midX, padding, rightX - midX, midY - padding);
+            
+            ctx.fillStyle = 'rgba(251, 146, 60, 0.05)';
+            ctx.fillRect(padding, padding, midX - padding, midY - padding);
+            
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
+            ctx.fillRect(padding, midY, midX - padding, bottomY - midY);
+            
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.05)';
+            ctx.fillRect(midX, midY, rightX - midX, bottomY - midY);
+        }
+
+        function drawAxes(width, height, padding) {
+            ctx.strokeStyle = '#1e2433';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+            
+            ctx.strokeStyle = '#1e2433';
+            ctx.setLineDash([5, 5]);
+            const midX = padding + (width - 2 * padding) / 2;
+            ctx.beginPath();
+            ctx.moveTo(midX, padding);
+            ctx.lineTo(midX, height - padding);
+            ctx.stroke();
+            
+            const midY = padding + (height - 2 * padding) / 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, midY);
+            ctx.lineTo(width - padding, midY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#64748b';
+            ctx.font = '12px IBM Plex Mono';
+            ctx.textAlign = 'center';
+            
+            ctx.fillText('0%', padding, height - padding + 20);
+            ctx.fillText('50%', midX, height - padding + 20);
+            ctx.fillText('100%', width - padding, height - padding + 20);
+            ctx.fillText('IV Rank â†’', width / 2, height - 10);
+            
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('â† Put Skew | Call Skew â†’', 0, 0);
+            ctx.restore();
+            
+            ctx.textAlign = 'right';
+            ctx.fillText('0%', padding - 10, midY + 4);
+            ctx.fillText('100%', padding - 10, padding + 4);
+        }
+
+        function drawPoints(width, height, padding) {
+            compassData.forEach(item => {
+                const x = padding + (item.iv_rank / 100) * (width - 2 * padding);
+                const y = height - padding - (item.skew_rank / 100) * (height - 2 * padding);
+                
+                let color;
+                if (item.iv_rank >= 50 && item.skew_rank >= 50) {
+                    color = '#10b981';
+                } else if (item.iv_rank < 50 && item.skew_rank >= 50) {
+                    color = '#fb923c';
+                } else if (item.iv_rank < 50 && item.skew_rank < 50) {
+                    color = '#ef4444';
+                } else {
+                    color = '#3b82f6';
+                }
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                item._x = x;
+                item._y = y;
+            });
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            let hovered = null;
+            
+            for (const item of compassData) {
+                const dx = mouseX - item._x;
+                const dy = mouseY - item._y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 10) {
+                    hovered = item;
+                    break;
+                }
+            }
+            
+            if (hovered) {
+                document.getElementById('tooltipSymbol').textContent = hovered.symbol;
+                document.getElementById('tooltipIVRank').textContent = hovered.iv_rank.toFixed(1) + '%';
+                document.getElementById('tooltipSkewRank').textContent = hovered.skew_rank.toFixed(1) + '%';
+                document.getElementById('tooltipIV').textContent = hovered.current_iv.toFixed(1) + '%';
+                document.getElementById('tooltipRR').textContent = hovered.risk_reversal.toFixed(2) + '%';
+                
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+                tooltip.classList.add('visible');
+                
+                canvas.style.cursor = 'pointer';
+            } else {
+                tooltip.classList.remove('visible');
+                canvas.style.cursor = 'crosshair';
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('visible');
+        });
+
+        window.addEventListener('load', async () => {
+            resizeCanvas();
+            await loadData(); // Cargar datos primero
+            initialize();
+        });
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            drawCompass();
+        });
+    </script>
+</body>
+</html>
