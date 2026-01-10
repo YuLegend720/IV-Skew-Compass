@@ -1,0 +1,160 @@
+{
+  "last_updated": "2026-01-10T21:17:26.919080",
+  "symbols_count": 22,
+  "data": [
+    {
+      "symbol": "AAPL",
+      "iv_rank": 62.34,
+      "skew_rank": 36.27,
+      "current_iv": 26.73,
+      "risk_reversal": -2.75
+    },
+    {
+      "symbol": "MSFT",
+      "iv_rank": 63.2,
+      "skew_rank": 34.04,
+      "current_iv": 30.12,
+      "risk_reversal": -3.19
+    },
+    {
+      "symbol": "GOOGL",
+      "iv_rank": 50.65,
+      "skew_rank": 45.0,
+      "current_iv": 37.18,
+      "risk_reversal": -1.0
+    },
+    {
+      "symbol": "AMZN",
+      "iv_rank": 61.04,
+      "skew_rank": 44.51,
+      "current_iv": 38.01,
+      "risk_reversal": -1.1
+    },
+    {
+      "symbol": "META",
+      "iv_rank": 56.28,
+      "skew_rank": 44.2,
+      "current_iv": 40.31,
+      "risk_reversal": -1.16
+    },
+    {
+      "symbol": "NVDA",
+      "iv_rank": 67.53,
+      "skew_rank": 26.56,
+      "current_iv": 35.93,
+      "risk_reversal": -4.69
+    },
+    {
+      "symbol": "TSLA",
+      "iv_rank": 70.56,
+      "skew_rank": 55.37,
+      "current_iv": 46.39,
+      "risk_reversal": 1.07
+    },
+    {
+      "symbol": "JPM",
+      "iv_rank": 69.7,
+      "skew_rank": 13.07,
+      "current_iv": 26.44,
+      "risk_reversal": -7.39
+    },
+    {
+      "symbol": "BAC",
+      "iv_rank": 68.83,
+      "skew_rank": 14.84,
+      "current_iv": 26.41,
+      "risk_reversal": -7.03
+    },
+    {
+      "symbol": "WFC",
+      "iv_rank": 68.4,
+      "skew_rank": 8.74,
+      "current_iv": 31.28,
+      "risk_reversal": -8.25
+    },
+    {
+      "symbol": "DIS",
+      "iv_rank": 65.37,
+      "skew_rank": 2.88,
+      "current_iv": 37.1,
+      "risk_reversal": -9.42
+    },
+    {
+      "symbol": "NFLX",
+      "iv_rank": 57.58,
+      "skew_rank": 59.64,
+      "current_iv": 48.61,
+      "risk_reversal": 1.93
+    },
+    {
+      "symbol": "AMD",
+      "iv_rank": 69.7,
+      "skew_rank": 58.97,
+      "current_iv": 53.67,
+      "risk_reversal": 1.79
+    },
+    {
+      "symbol": "INTC",
+      "iv_rank": 59.31,
+      "skew_rank": 100,
+      "current_iv": 67.64,
+      "risk_reversal": 11.18
+    },
+    {
+      "symbol": "SPY",
+      "iv_rank": 74.03,
+      "skew_rank": 9.29,
+      "current_iv": 13.87,
+      "risk_reversal": -8.14
+    },
+    {
+      "symbol": "QQQ",
+      "iv_rank": 73.16,
+      "skew_rank": 4.29,
+      "current_iv": 18.31,
+      "risk_reversal": -9.14
+    },
+    {
+      "symbol": "IWM",
+      "iv_rank": 66.67,
+      "skew_rank": 21.19,
+      "current_iv": 18.91,
+      "risk_reversal": -5.76
+    },
+    {
+      "symbol": "TLT",
+      "iv_rank": 56.71,
+      "skew_rank": 50.98,
+      "current_iv": 10.79,
+      "risk_reversal": 0.2
+    },
+    {
+      "symbol": "COIN",
+      "iv_rank": 51.95,
+      "skew_rank": 56.93,
+      "current_iv": 52.11,
+      "risk_reversal": 1.39
+    },
+    {
+      "symbol": "PLTR",
+      "iv_rank": 59.31,
+      "skew_rank": 39.84,
+      "current_iv": 57.81,
+      "risk_reversal": -2.03
+    },
+    {
+      "symbol": "SOFI",
+      "iv_rank": 62.34,
+      "skew_rank": 52.93,
+      "current_iv": 63.83,
+      "risk_reversal": 0.59
+    },
+    {
+      "symbol": "UBER",
+      "iv_rank": 67.97,
+      "skew_rank": 45.85,
+      "current_iv": 44.29,
+      "risk_reversal": -0.83
+    }
+  ]
+}
