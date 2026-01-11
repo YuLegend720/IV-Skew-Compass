@@ -1,160 +1,183 @@
-{
-  "last_updated": "2026-01-10T21:17:26.919080",
-  "symbols_count": 22,
-  "data": [
-    {
-      "symbol": "AAPL",
-      "iv_rank": 62.34,
-      "skew_rank": 36.27,
-      "current_iv": 26.73,
-      "risk_reversal": -2.75
-    },
-    {
-      "symbol": "MSFT",
-      "iv_rank": 63.2,
-      "skew_rank": 34.04,
-      "current_iv": 30.12,
-      "risk_reversal": -3.19
-    },
-    {
-      "symbol": "GOOGL",
-      "iv_rank": 50.65,
-      "skew_rank": 45.0,
-      "current_iv": 37.18,
-      "risk_reversal": -1.0
-    },
-    {
-      "symbol": "AMZN",
-      "iv_rank": 61.04,
-      "skew_rank": 44.51,
-      "current_iv": 38.01,
-      "risk_reversal": -1.1
-    },
-    {
-      "symbol": "META",
-      "iv_rank": 56.28,
-      "skew_rank": 44.2,
-      "current_iv": 40.31,
-      "risk_reversal": -1.16
-    },
-    {
-      "symbol": "NVDA",
-      "iv_rank": 67.53,
-      "skew_rank": 26.56,
-      "current_iv": 35.93,
-      "risk_reversal": -4.69
-    },
-    {
-      "symbol": "TSLA",
-      "iv_rank": 70.56,
-      "skew_rank": 55.37,
-      "current_iv": 46.39,
-      "risk_reversal": 1.07
-    },
-    {
-      "symbol": "JPM",
-      "iv_rank": 69.7,
-      "skew_rank": 13.07,
-      "current_iv": 26.44,
-      "risk_reversal": -7.39
-    },
-    {
-      "symbol": "BAC",
-      "iv_rank": 68.83,
-      "skew_rank": 14.84,
-      "current_iv": 26.41,
-      "risk_reversal": -7.03
-    },
-    {
-      "symbol": "WFC",
-      "iv_rank": 68.4,
-      "skew_rank": 8.74,
-      "current_iv": 31.28,
-      "risk_reversal": -8.25
-    },
-    {
-      "symbol": "DIS",
-      "iv_rank": 65.37,
-      "skew_rank": 2.88,
-      "current_iv": 37.1,
-      "risk_reversal": -9.42
-    },
-    {
-      "symbol": "NFLX",
-      "iv_rank": 57.58,
-      "skew_rank": 59.64,
-      "current_iv": 48.61,
-      "risk_reversal": 1.93
-    },
-    {
-      "symbol": "AMD",
-      "iv_rank": 69.7,
-      "skew_rank": 58.97,
-      "current_iv": 53.67,
-      "risk_reversal": 1.79
-    },
-    {
-      "symbol": "INTC",
-      "iv_rank": 59.31,
-      "skew_rank": 100,
-      "current_iv": 67.64,
-      "risk_reversal": 11.18
-    },
-    {
-      "symbol": "SPY",
-      "iv_rank": 74.03,
-      "skew_rank": 9.29,
-      "current_iv": 13.87,
-      "risk_reversal": -8.14
-    },
-    {
-      "symbol": "QQQ",
-      "iv_rank": 73.16,
-      "skew_rank": 4.29,
-      "current_iv": 18.31,
-      "risk_reversal": -9.14
-    },
-    {
-      "symbol": "IWM",
-      "iv_rank": 66.67,
-      "skew_rank": 21.19,
-      "current_iv": 18.91,
-      "risk_reversal": -5.76
-    },
-    {
-      "symbol": "TLT",
-      "iv_rank": 56.71,
-      "skew_rank": 50.98,
-      "current_iv": 10.79,
-      "risk_reversal": 0.2
-    },
-    {
-      "symbol": "COIN",
-      "iv_rank": 51.95,
-      "skew_rank": 56.93,
-      "current_iv": 52.11,
-      "risk_reversal": 1.39
-    },
-    {
-      "symbol": "PLTR",
-      "iv_rank": 59.31,
-      "skew_rank": 39.84,
-      "current_iv": 57.81,
-      "risk_reversal": -2.03
-    },
-    {
-      "symbol": "SOFI",
-      "iv_rank": 62.34,
-      "skew_rank": 52.93,
-      "current_iv": 63.83,
-      "risk_reversal": 0.59
-    },
-    {
-      "symbol": "UBER",
-      "iv_rank": 67.97,
-      "skew_rank": 45.85,
-      "current_iv": 44.29,
-      "risk_reversal": -0.83
+#!/usr/bin/env python3
+"""
+Compass V2 Data Fetcher
+Fetches real options data from Yahoo Finance
+Calculates: Risk Premium (IV - HV), Risk Reversal (Call IV - Put IV)
+"""
+
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import json
+import warnings
+
+warnings.filterwarnings('ignore')
+
+# Símbolos a analizar
+SYMBOLS = [
+    'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA',
+    'JPM', 'BAC', 'WFC', 'DIS', 'NFLX', 'AMD', 'INTC',
+    'SPY', 'QQQ', 'IWM', 'TLT', 'COIN', 'PLTR', 'SOFI', 'UBER'
+]
+
+def calculate_historical_volatility(ticker, days=20):
+    """Calculate historical volatility using log returns"""
+    try:
+        hist = ticker.history(period='3mo')
+        if len(hist) < days:
+            return None
+        
+        log_returns = np.log(hist['Close'] / hist['Close'].shift(1))
+        hv = log_returns.tail(days).std() * np.sqrt(252) * 100
+        return round(hv, 2)
+    except Exception as e:
+        print(f"  ⚠ Error calculating HV: {e}")
+        return None
+
+def get_atm_iv(options_chain, option_type='call'):
+    """Get ATM implied volatility"""
+    try:
+        if option_type == 'call':
+            chain = options_chain.calls
+        else:
+            chain = options_chain.puts
+        
+        if chain.empty:
+            return None
+        
+        # Filter by volume and open interest
+        chain = chain[
+            (chain['volume'] > 0) & 
+            (chain['openInterest'] > 0) &
+            (chain['impliedVolatility'] > 0)
+        ]
+        
+        if chain.empty:
+            return None
+        
+        # Get closest to ATM
+        chain = chain.iloc[(chain['strike'] - chain['lastPrice'].mean()).abs().argsort()[:3]]
+        
+        iv = chain['impliedVolatility'].median() * 100
+        return round(iv, 2)
+        
+    except Exception as e:
+        print(f"  ⚠ Error getting {option_type} IV: {e}")
+        return None
+
+def fetch_symbol_data(symbol):
+    """Fetch all data for a single symbol"""
+    print(f"\n📊 Fetching {symbol}...")
+    
+    try:
+        ticker = yf.Ticker(symbol)
+        
+        # Get current stock info
+        info = ticker.info
+        current_price = info.get('currentPrice') or info.get('regularMarketPrice')
+        
+        if not current_price:
+            print(f"  ❌ No price data")
+            return None
+        
+        # Calculate Historical Volatility
+        hv_20 = calculate_historical_volatility(ticker, days=20)
+        if hv_20 is None:
+            print(f"  ❌ Could not calculate HV")
+            return None
+        
+        # Get options chain (closest expiration)
+        expirations = ticker.options
+        if not expirations:
+            print(f"  ❌ No options available")
+            return None
+        
+        # Use first expiration (usually closest)
+        options = ticker.option_chain(expirations[0])
+        
+        # Get ATM IV for calls and puts
+        call_iv = get_atm_iv(options, 'call')
+        put_iv = get_atm_iv(options, 'put')
+        
+        if call_iv is None or put_iv is None:
+            print(f"  ❌ Could not get IV data")
+            return None
+        
+        # Calculate current IV (average of call and put)
+        current_iv = round((call_iv + put_iv) / 2, 2)
+        
+        # Calculate Risk Premium (IV - HV)
+        risk_premium = round(current_iv - hv_20, 2)
+        
+        # Calculate Risk Reversal (Call IV - Put IV)
+        risk_reversal = round(call_iv - put_iv, 2)
+        
+        # Calculate IV/HV Ratio
+        iv_hv_ratio = round(current_iv / hv_20, 2) if hv_20 > 0 else None
+        
+        data = {
+            'symbol': symbol,
+            'current_iv': current_iv,
+            'hv_20': hv_20,
+            'risk_premium': risk_premium,
+            'risk_reversal': risk_reversal,
+            'iv_hv_ratio': iv_hv_ratio
+        }
+        
+        print(f"  ✓ IV: {current_iv}% | HV: {hv_20}% | RP: {risk_premium:+.2f}% | RR: {risk_reversal:+.2f}%")
+        return data
+        
+    except Exception as e:
+        print(f"  ❌ Error: {e}")
+        return None
+
+def main():
+    print("=" * 60)
+    print("🧭 COMPASS V2 DATA FETCHER")
+    print("=" * 60)
+    print(f"Fetching data for {len(SYMBOLS)} symbols...")
+    print(f"Timestamp: {datetime.utcnow().isoformat()}Z")
+    
+    results = []
+    
+    for symbol in SYMBOLS:
+        data = fetch_symbol_data(symbol)
+        if data:
+            results.append(data)
+    
+    print("\n" + "=" * 60)
+    print(f"✓ Successfully fetched {len(results)}/{len(SYMBOLS)} symbols")
+    print("=" * 60)
+    
+    # Create output JSON
+    output = {
+        'metadata': {
+            'version': '2.0',
+            'last_updated': datetime.utcnow().isoformat() + 'Z',
+            'source': 'Yahoo Finance',
+            'calculation_method': 'real_metrics'
+        },
+        'symbols_count': len(results),
+        'data': results
     }
-  ]
-}
+    
+    # Save to file
+    with open('compass-data.json', 'w') as f:
+        json.dump(output, f, indent=2)
+    
+    print(f"\n💾 Saved to compass-data.json")
+    
+    # Print summary statistics
+    if results:
+        avg_rp = sum(d['risk_premium'] for d in results) / len(results)
+        avg_rr = sum(d['risk_reversal'] for d in results) / len(results)
+        avg_iv = sum(d['current_iv'] for d in results) / len(results)
+        
+        print(f"\n📈 SUMMARY:")
+        print(f"   Avg Risk Premium: {avg_rp:+.2f}%")
+        print(f"   Avg Risk Reversal: {avg_rr:+.2f}%")
+        print(f"   Avg IV: {avg_iv:.2f}%")
+
+if __name__ == '__main__':
+    main()
