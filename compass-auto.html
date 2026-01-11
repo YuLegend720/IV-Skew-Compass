@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compass V2 - Análisis de Risk Premium y Risk Reversal en el mercado de opciones">
     <title>Compass · Risk Premium & Risk Reversal</title>
+    
+    <!-- Preconnect para mejorar performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Merriweather:wght@300;700;900&display=swap" rel="stylesheet">
     
     <style>
+        /* ===== VARIABLES ===== */
         :root {
             --color-bg: #0a0e1a;
             --color-surface: #141824;
@@ -19,20 +23,32 @@
             --color-accent-green: #10b981;
             --color-accent-orange: #f59e0b;
             --color-accent-red: #ef4444;
+            
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 16px;
         }
 
+        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* ===== BASE ===== */
         body {
             font-family: 'IBM Plex Mono', monospace;
             background: var(--color-bg);
             color: var(--color-text);
             min-height: 100vh;
-            padding: 2rem;
+            padding: var(--spacing-lg);
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
                 radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
@@ -43,21 +59,29 @@
             margin: 0 auto;
         }
 
-        .header {
-            margin-bottom: 3rem;
-            animation: fadeIn 0.8s ease;
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* ===== HEADER ===== */
+        .header {
+            margin-bottom: var(--spacing-xl);
+            animation: fadeIn 0.8s ease;
         }
 
         .title {
             font-family: 'Merriweather', serif;
-            font-size: 3rem;
+            font-size: clamp(2rem, 5vw, 3rem);
             font-weight: 900;
-            margin-bottom: 0.5rem;
+            margin-bottom: var(--spacing-xs);
             background: linear-gradient(135deg, var(--color-text) 0%, var(--color-accent-blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -79,23 +103,24 @@
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
-            margin-left: 1rem;
+            margin-left: var(--spacing-sm);
         }
 
+        /* ===== METRICS BAR ===== */
         .metrics-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
             animation: fadeIn 1s ease 0.2s both;
         }
 
         .metric-card {
             background: var(--color-surface);
             padding: 1.25rem;
-            border-radius: 12px;
+            border-radius: var(--border-radius-md);
             border: 1px solid var(--color-border);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .metric-card:hover {
@@ -106,7 +131,7 @@
         .metric-label {
             font-size: 0.75rem;
             color: var(--color-text-dim);
-            margin-bottom: 0.5rem;
+            margin-bottom: var(--spacing-xs);
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
@@ -117,12 +142,13 @@
             color: var(--color-text);
         }
 
+        /* ===== CHART ===== */
         .chart-container {
             background: var(--color-surface);
-            border-radius: 16px;
+            border-radius: var(--border-radius-lg);
             border: 1px solid var(--color-border);
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
             animation: fadeIn 1.2s ease 0.4s both;
         }
 
@@ -130,9 +156,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: var(--spacing-lg);
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: var(--spacing-sm);
         }
 
         .chart-title {
@@ -145,21 +171,22 @@
             width: 100%;
             height: 600px;
             cursor: crosshair;
+            display: block;
         }
 
+        /* ===== QUADRANTS ===== */
         .quadrant-labels {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
             animation: fadeIn 1.4s ease 0.6s both;
         }
 
         .quadrant-label {
             background: var(--color-surface);
-            padding: 1rem;
-            border-radius: 8px;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
             border: 1px solid var(--color-border);
             font-size: 0.875rem;
         }
@@ -180,12 +207,13 @@
         .q3 { border-left: 3px solid var(--color-accent-red); }
         .q4 { border-left: 3px solid var(--color-accent-blue); }
 
+        /* ===== TOOLTIP ===== */
         .tooltip {
             position: fixed;
             background: rgba(20, 24, 36, 0.98);
             border: 1px solid var(--color-border);
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-sm);
             font-size: 0.8125rem;
             pointer-events: none;
             opacity: 0;
@@ -202,7 +230,7 @@
         .tooltip-symbol {
             font-size: 1.125rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: var(--spacing-xs);
             color: var(--color-accent-blue);
         }
 
@@ -210,7 +238,7 @@
             display: flex;
             justify-content: space-between;
             margin: 0.25rem 0;
-            gap: 1rem;
+            gap: var(--spacing-sm);
         }
 
         .tooltip-label {
@@ -221,28 +249,28 @@
             font-weight: 600;
         }
 
+        /* ===== INFO PANEL ===== */
         .info-panel {
             background: var(--color-surface);
-            border-radius: 12px;
+            border-radius: var(--border-radius-md);
             border: 1px solid var(--color-border);
-            padding: 1.5rem;
-            margin-top: 2rem;
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-lg);
             animation: fadeIn 1.6s ease 0.8s both;
         }
 
         .info-panel h3 {
             font-family: 'Merriweather', serif;
             font-size: 1.125rem;
-            margin-bottom: 1rem;
+            margin-bottom: var(--spacing-sm);
         }
 
         .info-panel ul {
             list-style: none;
-            padding-left: 0;
         }
 
         .info-panel li {
-            padding: 0.5rem 0;
+            padding: var(--spacing-xs) 0;
             color: var(--color-text-dim);
             font-size: 0.875rem;
         }
@@ -250,21 +278,23 @@
         .info-panel li::before {
             content: "→";
             color: var(--color-accent-blue);
-            margin-right: 0.5rem;
+            margin-right: var(--spacing-xs);
         }
 
+        /* ===== FOOTER ===== */
         .footer {
             text-align: center;
-            margin-top: 3rem;
-            padding-top: 2rem;
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-lg);
             border-top: 1px solid var(--color-border);
             color: var(--color-text-dim);
             font-size: 0.8125rem;
         }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .title {
-                font-size: 2rem;
+            body {
+                padding: var(--spacing-sm);
             }
             
             #compass {
@@ -275,19 +305,27 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ===== LOADING STATE ===== */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <!-- HEADER -->
+        <header class="header">
             <h1 class="title">
                 Compass
                 <span class="version-badge">V2 PURE</span>
             </h1>
             <p class="subtitle">Risk Premium (IV-HV) vs Risk Reversal (Call-Put) · Real Metrics Only</p>
-        </div>
+        </header>
 
-        <div class="metrics-bar">
+        <!-- METRICS -->
+        <section class="metrics-bar" role="region" aria-label="Métricas principales">
             <div class="metric-card">
                 <div class="metric-label">Símbolos</div>
                 <div class="metric-value" id="totalSymbols">--</div>
@@ -304,17 +342,18 @@
                 <div class="metric-label">Estado</div>
                 <div class="metric-value" style="font-size: 1.25rem;" id="dataStatus">Cargando...</div>
             </div>
-        </div>
+        </section>
 
-        <div class="chart-container">
+        <!-- CHART -->
+        <section class="chart-container">
             <div class="chart-header">
                 <h2 class="chart-title">Market Positioning Map</h2>
             </div>
+            <canvas id="compass" role="img" aria-label="Gráfico de posicionamiento del mercado"></canvas>
+        </section>
 
-            <canvas id="compass"></canvas>
-        </div>
-
-        <div class="quadrant-labels">
+        <!-- QUADRANTS -->
+        <section class="quadrant-labels">
             <div class="quadrant-label q1">
                 <strong>Q1: Prima Alta + Call Skew</strong>
                 <span>Opciones caras + optimismo → Mercado paga prima por movimiento alcista esperado</span>
@@ -331,9 +370,10 @@
                 <strong>Q4: Prima Alta + Put Skew</strong>
                 <span>Opciones caras + miedo → Pánico, protección muy cara (sell vol)</span>
             </div>
-        </div>
+        </section>
 
-        <div class="info-panel">
+        <!-- INFO -->
+        <section class="info-panel">
             <h3>Cómo interpretar el Compass V2</h3>
             <ul>
                 <li><strong>Eje X (Risk Premium):</strong> IV actual - Volatilidad Realizada (20d). Positivo = opciones caras, Negativo = opciones baratas</li>
@@ -341,14 +381,16 @@
                 <li><strong>Ambas métricas son reales:</strong> Sin aproximaciones ni invenciones. Calculadas directamente de los datos del mercado</li>
                 <li><strong>Hover sobre puntos:</strong> Ver detalles específicos del símbolo incluyendo IV/HV ratio</li>
             </ul>
-        </div>
+        </section>
 
-        <div class="footer">
+        <!-- FOOTER -->
+        <footer class="footer">
             <p>Datos de Yahoo Finance · Actualización automática diaria · Solo métricas reales (sin aproximaciones)</p>
-        </div>
+        </footer>
     </div>
 
-    <div class="tooltip" id="tooltip">
+    <!-- TOOLTIP -->
+    <div class="tooltip" id="tooltip" role="tooltip">
         <div class="tooltip-symbol" id="tooltipSymbol"></div>
         <div class="tooltip-row">
             <span class="tooltip-label">Risk Premium:</span>
@@ -373,93 +415,168 @@
     </div>
 
     <script>
-        // Variables globales
-        let compassData = [];
-        let lastUpdated = null;
+        'use strict';
 
-        const canvas = document.getElementById('compass');
-        const ctx = canvas.getContext('2d');
-        const tooltip = document.getElementById('tooltip');
+        // ===== CONSTANTS =====
+        const CONFIG = {
+            GITHUB_DATA_URL: 'https://raw.githubusercontent.com/YuLegend720/IV-Skew-Compass/main/compass-data.json',
+            LOCAL_DATA_URL: './compass-data.json',
+            RP_MIN: -15,
+            RP_MAX: 20,
+            RR_MIN: -12,
+            RR_MAX: 12,
+            CANVAS_HEIGHT: 600,
+            CANVAS_PADDING: 60,
+            POINT_RADIUS: 6,
+            HOVER_THRESHOLD: 10
+        };
 
-        // CONFIGURACIÓN: Cambia esto con tu URL de GitHub
-        const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/YuLegend720/IV-Skew-Compass/main/compass-data.json';
-        const LOCAL_DATA_URL = './compass-data.json';
+        const QUADRANT_COLORS = {
+            Q1: '#10b981',  // Verde: Alta prima + Call skew
+            Q2: '#fb923c',  // Naranja: Baja prima + Call skew
+            Q3: '#ef4444',  // Rojo: Baja prima + Put skew
+            Q4: '#3b82f6'   // Azul: Alta prima + Put skew
+        };
 
-        // Rangos para los ejes
-        const RP_MIN = -15;  // Risk Premium mínimo
-        const RP_MAX = 20;   // Risk Premium máximo
-        const RR_MIN = -12;  // Risk Reversal mínimo
-        const RR_MAX = 12;   // Risk Reversal máximo
+        // ===== STATE =====
+        const state = {
+            compassData: [],
+            lastUpdated: null,
+            isLoading: false
+        };
 
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth - 64;
-            canvas.height = 600;
-        }
+        // ===== DOM ELEMENTS =====
+        const elements = {
+            canvas: document.getElementById('compass'),
+            tooltip: document.getElementById('tooltip'),
+            totalSymbols: document.getElementById('totalSymbols'),
+            avgRP: document.getElementById('avgRP'),
+            avgRR: document.getElementById('avgRR'),
+            dataStatus: document.getElementById('dataStatus'),
+            tooltipSymbol: document.getElementById('tooltipSymbol'),
+            tooltipRP: document.getElementById('tooltipRP'),
+            tooltipRR: document.getElementById('tooltipRR'),
+            tooltipIV: document.getElementById('tooltipIV'),
+            tooltipHV: document.getElementById('tooltipHV'),
+            tooltipRatio: document.getElementById('tooltipRatio')
+        };
 
+        const ctx = elements.canvas.getContext('2d');
+
+        // ===== UTILITY FUNCTIONS =====
+        const utils = {
+            formatNumber: (num, decimals = 1, showSign = false) => {
+                const formatted = num.toFixed(decimals);
+                return showSign && num >= 0 ? `+${formatted}` : formatted;
+            },
+
+            formatDate: (date) => {
+                return new Intl.DateTimeFormat('es-ES', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).format(date);
+            },
+
+            debounce: (func, wait) => {
+                let timeout;
+                return function executedFunction(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            },
+
+            clamp: (value, min, max) => Math.max(min, Math.min(max, value))
+        };
+
+        // ===== DATA LOADING =====
         async function loadData() {
-            const statusElement = document.getElementById('dataStatus');
-            statusElement.textContent = 'Cargando...';
+            if (state.isLoading) return;
+            
+            state.isLoading = true;
+            elements.dataStatus.textContent = 'Cargando...';
             
             try {
-                // Intentar GitHub primero
-                let response = await fetch(GITHUB_DATA_URL);
-                if (!response.ok) {
-                    // Si falla, intentar local
-                    response = await fetch(LOCAL_DATA_URL);
+                // Try GitHub first, fallback to local
+                const urls = [CONFIG.GITHUB_DATA_URL, CONFIG.LOCAL_DATA_URL];
+                let response;
+                
+                for (const url of urls) {
+                    try {
+                        response = await fetch(url);
+                        if (response.ok) break;
+                    } catch (e) {
+                        console.warn(`Failed to fetch from ${url}:`, e);
+                    }
                 }
                 
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar datos');
+                if (!response || !response.ok) {
+                    throw new Error('No se pudo cargar datos de ninguna fuente');
                 }
                 
                 const jsonData = await response.json();
-                compassData = jsonData.data;
-                lastUpdated = new Date(jsonData.last_updated);
+                state.compassData = jsonData.data || [];
+                state.lastUpdated = new Date(jsonData.last_updated);
                 
-                statusElement.innerHTML = `Datos Reales<br><small style="font-size: 0.7rem; opacity: 0.7;">${formatDate(lastUpdated)}</small>`;
-                console.log('✓ Datos cargados:', compassData.length, 'símbolos');
+                updateStatus();
+                console.log('✓ Datos cargados:', state.compassData.length, 'símbolos');
                 
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                statusElement.textContent = 'Error al cargar';
-                compassData = [];
+                elements.dataStatus.textContent = 'Error al cargar';
+                state.compassData = [];
+            } finally {
+                state.isLoading = false;
             }
         }
 
-        function formatDate(date) {
-            const options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            };
-            return date.toLocaleDateString('es-ES', options);
+        function updateStatus() {
+            const dateStr = utils.formatDate(state.lastUpdated);
+            elements.dataStatus.innerHTML = `
+                Datos Reales
+                <br>
+                <small style="font-size: 0.7rem; opacity: 0.7;">${dateStr}</small>
+            `;
         }
 
-        function initialize() {
-            if (compassData.length === 0) {
-                console.error('No hay datos para mostrar');
-                return;
-            }
+        // ===== METRICS CALCULATION =====
+        function updateMetrics() {
+            if (state.compassData.length === 0) return;
 
-            // Actualizar métricas
-            document.getElementById('totalSymbols').textContent = compassData.length;
+            const { compassData } = state;
             
+            // Total symbols
+            elements.totalSymbols.textContent = compassData.length;
+            
+            // Average Risk Premium
             const avgRP = compassData.reduce((sum, item) => sum + (item.risk_premium || 0), 0) / compassData.length;
-            document.getElementById('avgRP').textContent = (avgRP >= 0 ? '+' : '') + avgRP.toFixed(1) + '%';
+            elements.avgRP.textContent = utils.formatNumber(avgRP, 1, true) + '%';
             
+            // Average Risk Reversal
             const avgRR = compassData.reduce((sum, item) => sum + (item.risk_reversal || 0), 0) / compassData.length;
-            document.getElementById('avgRR').textContent = (avgRR >= 0 ? '+' : '') + avgRR.toFixed(1) + '%';
-            
-            drawCompass();
+            elements.avgRR.textContent = utils.formatNumber(avgRR, 1, true) + '%';
         }
 
+        // ===== CANVAS MANAGEMENT =====
+        function resizeCanvas() {
+            const container = elements.canvas.parentElement;
+            elements.canvas.width = container.clientWidth - (CONFIG.CANVAS_PADDING + 4);
+            elements.canvas.height = CONFIG.CANVAS_HEIGHT;
+        }
+
+        function getQuadrantColor(rp, rr) {
+            if (rp >= 0 && rr >= 0) return QUADRANT_COLORS.Q1;
+            if (rp < 0 && rr >= 0) return QUADRANT_COLORS.Q2;
+            if (rp < 0 && rr < 0) return QUADRANT_COLORS.Q3;
+            return QUADRANT_COLORS.Q4;
+        }
+
+        // ===== DRAWING FUNCTIONS =====
         function drawCompass() {
-            const width = canvas.width;
-            const height = canvas.height;
-            const padding = 60;
+            const { width, height } = elements.canvas;
+            const padding = CONFIG.CANVAS_PADDING;
             
             ctx.clearRect(0, 0, width, height);
             
@@ -474,53 +591,42 @@
             const rightX = width - padding;
             const bottomY = height - padding;
             
-            // Q1: Alta prima + Call skew (arriba-derecha)
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.05)';
-            ctx.fillRect(midX, padding, rightX - midX, midY - padding);
+            const quadrants = [
+                { x: midX, y: padding, w: rightX - midX, h: midY - padding, color: 'rgba(16, 185, 129, 0.05)' },
+                { x: padding, y: padding, w: midX - padding, h: midY - padding, color: 'rgba(251, 146, 60, 0.05)' },
+                { x: padding, y: midY, w: midX - padding, h: bottomY - midY, color: 'rgba(239, 68, 68, 0.05)' },
+                { x: midX, y: midY, w: rightX - midX, h: bottomY - midY, color: 'rgba(59, 130, 246, 0.05)' }
+            ];
             
-            // Q2: Baja prima + Call skew (arriba-izquierda)
-            ctx.fillStyle = 'rgba(251, 146, 60, 0.05)';
-            ctx.fillRect(padding, padding, midX - padding, midY - padding);
-            
-            // Q3: Baja prima + Put skew (abajo-izquierda)
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
-            ctx.fillRect(padding, midY, midX - padding, bottomY - midY);
-            
-            // Q4: Alta prima + Put skew (abajo-derecha)
-            ctx.fillStyle = 'rgba(59, 130, 246, 0.05)';
-            ctx.fillRect(midX, midY, rightX - midX, bottomY - midY);
+            quadrants.forEach(({ x, y, w, h, color }) => {
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, w, h);
+            });
         }
 
         function drawAxes(width, height, padding) {
+            const { RP_MIN, RP_MAX, RR_MIN, RR_MAX } = CONFIG;
+            
             ctx.strokeStyle = '#1e2433';
             ctx.lineWidth = 2;
             
-            // Eje X
+            // Main axes
             ctx.beginPath();
             ctx.moveTo(padding, height - padding);
             ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
-            
-            // Eje Y
-            ctx.beginPath();
             ctx.moveTo(padding, padding);
             ctx.lineTo(padding, height - padding);
             ctx.stroke();
             
-            // Líneas centrales (en 0)
-            ctx.strokeStyle = '#1e2433';
+            // Zero lines (dashed)
             ctx.setLineDash([5, 5]);
             
-            // Línea vertical en Risk Premium = 0
             const zeroX = padding + ((0 - RP_MIN) / (RP_MAX - RP_MIN)) * (width - 2 * padding);
+            const zeroY = height - padding - ((0 - RR_MIN) / (RR_MAX - RR_MIN)) * (height - 2 * padding);
+            
             ctx.beginPath();
             ctx.moveTo(zeroX, padding);
             ctx.lineTo(zeroX, height - padding);
-            ctx.stroke();
-            
-            // Línea horizontal en Risk Reversal = 0
-            const zeroY = height - padding - ((0 - RR_MIN) / (RR_MAX - RR_MIN)) * (height - 2 * padding);
-            ctx.beginPath();
             ctx.moveTo(padding, zeroY);
             ctx.lineTo(width - padding, zeroY);
             ctx.stroke();
@@ -532,17 +638,16 @@
             ctx.font = '12px IBM Plex Mono';
             ctx.textAlign = 'center';
             
-            // Eje X labels
+            // X-axis labels
             ctx.fillText(`${RP_MIN}%`, padding, height - padding + 20);
             ctx.fillText('0%', zeroX, height - padding + 20);
             ctx.fillText(`+${RP_MAX}%`, width - padding, height - padding + 20);
             ctx.fillText('Risk Premium (IV - HV) →', width / 2, height - 10);
             
-            // Eje Y labels
+            // Y-axis labels
             ctx.save();
             ctx.translate(20, height / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
             ctx.fillText('← Put Skew | Call Skew →', 0, 0);
             ctx.restore();
             
@@ -553,92 +658,109 @@
         }
 
         function drawPoints(width, height, padding) {
-            compassData.forEach(item => {
-                // Normalizar a coordenadas del canvas
+            const { RP_MIN, RP_MAX, RR_MIN, RR_MAX, POINT_RADIUS } = CONFIG;
+            
+            state.compassData.forEach(item => {
+                // Normalize to canvas coordinates
                 const x = padding + ((item.risk_premium - RP_MIN) / (RP_MAX - RP_MIN)) * (width - 2 * padding);
                 const y = height - padding - ((item.risk_reversal - RR_MIN) / (RR_MAX - RR_MIN)) * (height - 2 * padding);
                 
-                // Color según cuadrante
-                let color;
-                if (item.risk_premium >= 0 && item.risk_reversal >= 0) {
-                    color = '#10b981';  // Q1: Verde
-                } else if (item.risk_premium < 0 && item.risk_reversal >= 0) {
-                    color = '#fb923c';  // Q2: Naranja
-                } else if (item.risk_premium < 0 && item.risk_reversal < 0) {
-                    color = '#ef4444';  // Q3: Rojo
-                } else {
-                    color = '#3b82f6';  // Q4: Azul
-                }
+                // Store for hover detection
+                item._x = x;
+                item._y = y;
                 
-                // Dibujar punto
+                // Draw point
+                const color = getQuadrantColor(item.risk_premium, item.risk_reversal);
+                
                 ctx.fillStyle = color;
                 ctx.beginPath();
-                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.arc(x, y, POINT_RADIUS, 0, 2 * Math.PI);
                 ctx.fill();
                 
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
-                
-                // Guardar coordenadas para tooltip
-                item._x = x;
-                item._y = y;
             });
         }
 
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
+        // ===== TOOLTIP MANAGEMENT =====
+        function findHoveredPoint(mouseX, mouseY) {
+            const threshold = CONFIG.HOVER_THRESHOLD;
             
-            let hovered = null;
-            
-            for (const item of compassData) {
+            for (const item of state.compassData) {
                 const dx = mouseX - item._x;
                 const dy = mouseY - item._y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance < 10) {
-                    hovered = item;
-                    break;
+                if (distance < threshold) {
+                    return item;
                 }
             }
+            return null;
+        }
+
+        function showTooltip(item, clientX, clientY) {
+            elements.tooltipSymbol.textContent = item.symbol;
+            elements.tooltipRP.textContent = utils.formatNumber(item.risk_premium, 2, true) + '%';
+            elements.tooltipRR.textContent = utils.formatNumber(item.risk_reversal, 2, true) + '%';
+            elements.tooltipIV.textContent = utils.formatNumber(item.current_iv, 1) + '%';
+            elements.tooltipHV.textContent = utils.formatNumber(item.hv_20, 1) + '%';
+            elements.tooltipRatio.textContent = item.iv_hv_ratio 
+                ? utils.formatNumber(item.iv_hv_ratio, 2) + 'x' 
+                : 'N/A';
+            
+            elements.tooltip.style.left = (clientX + 15) + 'px';
+            elements.tooltip.style.top = (clientY + 15) + 'px';
+            elements.tooltip.classList.add('visible');
+            elements.canvas.style.cursor = 'pointer';
+        }
+
+        function hideTooltip() {
+            elements.tooltip.classList.remove('visible');
+            elements.canvas.style.cursor = 'crosshair';
+        }
+
+        // ===== EVENT HANDLERS =====
+        function handleMouseMove(e) {
+            const rect = elements.canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const hovered = findHoveredPoint(mouseX, mouseY);
             
             if (hovered) {
-                document.getElementById('tooltipSymbol').textContent = hovered.symbol;
-                document.getElementById('tooltipRP').textContent = (hovered.risk_premium >= 0 ? '+' : '') + hovered.risk_premium.toFixed(2) + '%';
-                document.getElementById('tooltipRR').textContent = (hovered.risk_reversal >= 0 ? '+' : '') + hovered.risk_reversal.toFixed(2) + '%';
-                document.getElementById('tooltipIV').textContent = hovered.current_iv.toFixed(1) + '%';
-                document.getElementById('tooltipHV').textContent = hovered.hv_20.toFixed(1) + '%';
-                document.getElementById('tooltipRatio').textContent = hovered.iv_hv_ratio ? hovered.iv_hv_ratio.toFixed(2) + 'x' : 'N/A';
-                
-                tooltip.style.left = (e.clientX + 15) + 'px';
-                tooltip.style.top = (e.clientY + 15) + 'px';
-                tooltip.classList.add('visible');
-                
-                canvas.style.cursor = 'pointer';
+                showTooltip(hovered, e.clientX, e.clientY);
             } else {
-                tooltip.classList.remove('visible');
-                canvas.style.cursor = 'crosshair';
+                hideTooltip();
             }
-        });
+        }
 
-        canvas.addEventListener('mouseleave', () => {
-            tooltip.classList.remove('visible');
-        });
-
-        window.addEventListener('load', async () => {
+        const debouncedResize = utils.debounce(() => {
             resizeCanvas();
-            await loadData();
-            initialize();
-        });
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            if (compassData.length > 0) {
+            if (state.compassData.length > 0) {
                 drawCompass();
             }
-        });
+        }, 250);
+
+        // ===== INITIALIZATION =====
+        async function initialize() {
+            resizeCanvas();
+            await loadData();
+            
+            if (state.compassData.length === 0) {
+                console.error('No hay datos para mostrar');
+                return;
+            }
+            
+            updateMetrics();
+            drawCompass();
+        }
+
+        // ===== EVENT LISTENERS =====
+        elements.canvas.addEventListener('mousemove', handleMouseMove);
+        elements.canvas.addEventListener('mouseleave', hideTooltip);
+        window.addEventListener('resize', debouncedResize);
+        window.addEventListener('load', initialize);
     </script>
 </body>
 </html>
