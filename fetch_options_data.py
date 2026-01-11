@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Compass Data Fetcher
-Obtiene datos de opciones y calcula IV Rank y Skew Rank para el Compass
+Compass Data Fetcher V2 - Pure Metrics Edition
+Usa solo métricas reales: Risk Premium (IV - HV) y Risk Reversal
+Sin aproximaciones ni invenciones
 """
 
 import yfinance as yf
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -21,66 +22,74 @@ SYMBOLS = [
 ]
 
 # Configuración
-LOOKBACK_DAYS = 252  # 1 año para calcular percentiles
-MIN_OPTIONS_REQUIRED = 5  # Mínimo de opciones para considerar el símbolo
+HV_PERIOD = 20  # Días para calcular volatilidad realizada
 
 
-def calculate_iv_rank(current_iv: float, historical_ivs: List[float]) -> float:
+def calculate_realized_volatility(ticker_obj, period: int = 20) -> float:
     """
-    Calcula el IV Rank: percentil de la IV actual en los últimos 252 días
-    
-    Args:
-        current_iv: Volatilidad implícita actual
-        historical_ivs: Lista de IVs históricas
-    
-    Returns:
-        IV Rank como porcentaje (0-100)
-    """
-    if not historical_ivs or current_iv is None:
-        return 50.0  # Valor neutral si no hay datos
-    
-    historical_ivs = [iv for iv in historical_ivs if iv is not None]
-    if len(historical_ivs) < 10:
-        return 50.0
-    
-    # Calcular percentil
-    rank = np.percentile(historical_ivs, 100) if current_iv >= max(historical_ivs) else \
-           np.percentile(historical_ivs, 0) if current_iv <= min(historical_ivs) else \
-           (sum(1 for iv in historical_ivs if iv <= current_iv) / len(historical_ivs)) * 100
-    
-    return round(rank, 2)
-
-
-def get_implied_volatility(ticker_obj, period: str = "1y") -> tuple:
-    """
-    Obtiene la volatilidad implícita actual y el histórico
+    Calcula la volatilidad realizada (HV) de los últimos N días
     
     Args:
         ticker_obj: Objeto yfinance ticker
-        period: Período de histórico
+        period: Días para calcular HV
     
     Returns:
-        Tupla (current_iv, historical_ivs)
+        Volatilidad realizada anualizada en %
     """
     try:
-        # Intentar obtener IV de las opciones
+        # Obtener histórico de precios
+        hist = ticker_obj.history(period=f"{period + 10}d")
+        
+        if hist.empty or len(hist) < period:
+            return None
+        
+        # Calcular returns
+        returns = hist['Close'].pct_change().dropna()
+        
+        # Tomar últimos N días
+        returns = returns.tail(period)
+        
+        if len(returns) < period:
+            return None
+        
+        # Calcular volatilidad anualizada
+        hv = returns.std() * np.sqrt(252) * 100
+        
+        return round(hv, 2)
+        
+    except Exception as e:
+        print(f"  Error calculating HV: {e}")
+        return None
+
+
+def get_atm_implied_volatility(ticker_obj) -> Tuple[float, float]:
+    """
+    Obtiene la volatilidad implícita ATM promedio
+    
+    Args:
+        ticker_obj: Objeto yfinance ticker
+    
+    Returns:
+        Tupla (current_iv, current_price)
+    """
+    try:
         options_dates = ticker_obj.options
         if not options_dates or len(options_dates) < 2:
-            return None, []
+            return None, None
         
-        # Obtener la cadena de opciones más cercana (30-60 días)
+        # Buscar opciones entre 25-60 días
         target_date = None
         today = datetime.now()
         
         for date_str in options_dates:
             exp_date = datetime.strptime(date_str, '%Y-%m-%d')
             days_to_exp = (exp_date - today).days
-            if 25 <= days_to_exp <= 60:  # Buscar opciones ~30-45 DTE
+            if 25 <= days_to_exp <= 60:
                 target_date = date_str
                 break
         
         if not target_date:
-            target_date = options_dates[0]  # Usar la más cercana
+            target_date = options_dates[0]
         
         # Obtener cadena de opciones
         opt_chain = ticker_obj.option_chain(target_date)
@@ -88,76 +97,85 @@ def get_implied_volatility(ticker_obj, period: str = "1y") -> tuple:
         puts = opt_chain.puts
         
         if calls.empty or puts.empty:
-            return None, []
+            return None, None
         
-        # Calcular IV promedio de ATM options
-        current_price = ticker_obj.info.get('regularMarketPrice', ticker_obj.history(period='1d')['Close'].iloc[-1])
+        # Obtener precio actual
+        try:
+            current_price = ticker_obj.info.get('regularMarketPrice')
+            if not current_price:
+                current_price = ticker_obj.history(period='1d')['Close'].iloc[-1]
+        except:
+            current_price = ticker_obj.history(period='1d')['Close'].iloc[-1]
         
-        # Filtrar opciones cerca del dinero (0.95 - 1.05 del precio actual)
-        atm_calls = calls[(calls['strike'] >= current_price * 0.95) & 
-                          (calls['strike'] <= current_price * 1.05)]
-        atm_puts = puts[(puts['strike'] >= current_price * 0.95) & 
-                        (puts['strike'] <= current_price * 1.05)]
+        # Filtrar opciones ATM (±5%)
+        atm_calls = calls[
+            (calls['strike'] >= current_price * 0.95) & 
+            (calls['strike'] <= current_price * 1.05)
+        ]
+        atm_puts = puts[
+            (puts['strike'] >= current_price * 0.95) & 
+            (puts['strike'] <= current_price * 1.05)
+        ]
         
-        # Promediar IVs
+        # Obtener IVs
         call_ivs = atm_calls['impliedVolatility'].dropna()
         put_ivs = atm_puts['impliedVolatility'].dropna()
         
+        if call_ivs.empty and put_ivs.empty:
+            return None, None
+        
+        # Promediar todas las IVs ATM
         all_ivs = pd.concat([call_ivs, put_ivs])
+        current_iv = all_ivs.mean() * 100
         
-        if all_ivs.empty:
-            return None, []
-        
-        current_iv = all_ivs.mean() * 100  # Convertir a porcentaje
-        
-        # Obtener histórico de volatilidad realizada como proxy para IV histórica
-        hist = ticker_obj.history(period=period)
-        if hist.empty or len(hist) < 20:
-            return current_iv, [current_iv]
-        
-        # Calcular volatilidad realizada histórica (proxy para IV)
-        hist['returns'] = hist['Close'].pct_change()
-        
-        # Calcular volatilidad rolling de 20 días
-        historical_vols = []
-        for i in range(20, len(hist)):
-            vol = hist['returns'].iloc[i-20:i].std() * np.sqrt(252) * 100
-            if not np.isnan(vol):
-                historical_vols.append(vol)
-        
-        # Ajustar las volatilidades históricas para que se alineen mejor con la IV actual
-        # (La IV suele ser mayor que la volatilidad realizada)
-        if historical_vols:
-            avg_realized = np.mean(historical_vols)
-            adjustment_factor = current_iv / avg_realized if avg_realized > 0 else 1.2
-            historical_vols = [vol * adjustment_factor for vol in historical_vols]
-        
-        return current_iv, historical_vols
+        return round(current_iv, 2), current_price
         
     except Exception as e:
-        print(f"Error getting IV for symbol: {e}")
-        return None, []
+        print(f"  Error getting IV: {e}")
+        return None, None
 
 
-def calculate_risk_reversal(ticker_obj) -> tuple:
+def calculate_risk_premium(current_iv: float, realized_vol: float) -> float:
     """
-    Calcula el Risk Reversal y Skew Rank
+    Calcula el Risk Premium
+    
+    Risk Premium = IV - HV
+    Positivo = Opciones caras (mercado paga prima)
+    Negativo = Opciones baratas (no hay prima)
+    
+    Args:
+        current_iv: Volatilidad implícita actual
+        realized_vol: Volatilidad realizada
+    
+    Returns:
+        Risk Premium en puntos porcentuales
+    """
+    if current_iv is None or realized_vol is None:
+        return None
+    
+    return round(current_iv - realized_vol, 2)
+
+
+def calculate_risk_reversal(ticker_obj, current_price: float) -> float:
+    """
+    Calcula el Risk Reversal real
     
     Risk Reversal = IV(25Δ Call) - IV(25Δ Put)
-    Skew Rank = Percentil del RR actual en el histórico
+    Aproximamos 25Δ como ~10% OTM
     
     Args:
         ticker_obj: Objeto yfinance ticker
+        current_price: Precio actual del subyacente
     
     Returns:
-        Tupla (risk_reversal, skew_rank)
+        Risk Reversal en puntos porcentuales
     """
     try:
         options_dates = ticker_obj.options
-        if not options_dates or len(options_dates) < 2:
-            return 0.0, 50.0
+        if not options_dates:
+            return None
         
-        # Obtener la cadena de opciones
+        # Buscar fecha entre 25-60 días
         target_date = None
         today = datetime.now()
         
@@ -176,21 +194,18 @@ def calculate_risk_reversal(ticker_obj) -> tuple:
         puts = opt_chain.puts
         
         if calls.empty or puts.empty:
-            return 0.0, 50.0
+            return None
         
-        # Obtener precio actual
-        current_price = ticker_obj.info.get('regularMarketPrice', ticker_obj.history(period='1d')['Close'].iloc[-1])
-        
-        # Encontrar opciones OTM (25 delta aproximadamente = 10-15% OTM)
+        # Strikes OTM (~10%)
         otm_call_strike = current_price * 1.10
         otm_put_strike = current_price * 0.90
         
-        # Encontrar las opciones más cercanas a estos strikes
+        # Encontrar opciones más cercanas
         call_option = calls.iloc[(calls['strike'] - otm_call_strike).abs().argsort()[:1]]
         put_option = puts.iloc[(puts['strike'] - otm_put_strike).abs().argsort()[:1]]
         
         if call_option.empty or put_option.empty:
-            return 0.0, 50.0
+            return None
         
         call_iv = call_option['impliedVolatility'].iloc[0] * 100
         put_iv = put_option['impliedVolatility'].iloc[0] * 100
@@ -198,59 +213,62 @@ def calculate_risk_reversal(ticker_obj) -> tuple:
         # Risk Reversal = Call IV - Put IV
         risk_reversal = call_iv - put_iv
         
-        # Para calcular Skew Rank, necesitamos histórico de RR
-        # Simplificado: usamos la relación entre call y put IV
-        # Positivo = Call skew (bullish), Negativo = Put skew (bearish)
-        
-        # Normalizar a escala 0-100
-        # RR típicamente va de -10 a +10
-        # Convertimos a percentil asumiendo distribución normal
-        skew_rank = 50 + (risk_reversal / 0.2)  # Normalizar
-        skew_rank = max(0, min(100, skew_rank))  # Limitar a 0-100
-        
-        return round(risk_reversal, 2), round(skew_rank, 2)
+        return round(risk_reversal, 2)
         
     except Exception as e:
-        print(f"Error calculating risk reversal: {e}")
-        return 0.0, 50.0
+        print(f"  Error calculating Risk Reversal: {e}")
+        return None
 
 
 def fetch_symbol_data(symbol: str) -> Dict:
     """
     Obtiene todos los datos necesarios para un símbolo
     
-    Args:
-        symbol: Ticker symbol
-    
     Returns:
-        Diccionario con datos del símbolo o None si falla
+        Dict con: symbol, risk_premium, risk_reversal, current_iv, hv_20
     """
     print(f"Procesando {symbol}...")
     
     try:
         ticker = yf.Ticker(symbol)
         
-        # Obtener IV y calcular IV Rank
-        current_iv, historical_ivs = get_implied_volatility(ticker)
+        # 1. Obtener IV actual
+        current_iv, current_price = get_atm_implied_volatility(ticker)
         
-        if current_iv is None:
-            print(f"  ⚠️  {symbol}: No se pudieron obtener datos de IV")
+        if current_iv is None or current_price is None:
+            print(f"  ⚠️  {symbol}: No se pudo obtener IV")
             return None
         
-        iv_rank = calculate_iv_rank(current_iv, historical_ivs)
+        # 2. Calcular volatilidad realizada
+        hv_20 = calculate_realized_volatility(ticker, HV_PERIOD)
         
-        # Calcular Risk Reversal y Skew Rank
-        risk_reversal, skew_rank = calculate_risk_reversal(ticker)
+        if hv_20 is None:
+            print(f"  ⚠️  {symbol}: No se pudo calcular HV")
+            return None
+        
+        # 3. Calcular Risk Premium
+        risk_premium = calculate_risk_premium(current_iv, hv_20)
+        
+        # 4. Calcular Risk Reversal
+        risk_reversal = calculate_risk_reversal(ticker, current_price)
+        
+        if risk_reversal is None:
+            print(f"  ⚠️  {symbol}: No se pudo calcular Risk Reversal")
+            return None
         
         data = {
             'symbol': symbol,
-            'iv_rank': iv_rank,
-            'skew_rank': skew_rank,
-            'current_iv': round(current_iv, 2),
-            'risk_reversal': risk_reversal
+            'risk_premium': risk_premium,      # IV - HV (eje X)
+            'risk_reversal': risk_reversal,    # Call IV - Put IV (eje Y)
+            'current_iv': current_iv,
+            'hv_20': hv_20,
+            'iv_hv_ratio': round(current_iv / hv_20, 2) if hv_20 > 0 else None
         }
         
-        print(f"  ✓ {symbol}: IV={current_iv:.1f}% (Rank={iv_rank:.1f}%), RR={risk_reversal:.2f}% (Skew={skew_rank:.1f}%)")
+        print(f"  ✓ {symbol}:")
+        print(f"    IV={current_iv:.1f}%, HV={hv_20:.1f}%")
+        print(f"    Risk Premium={risk_premium:+.2f}% (IV-HV)")
+        print(f"    Risk Reversal={risk_reversal:+.2f}% (C-P)")
         
         return data
         
@@ -261,13 +279,17 @@ def fetch_symbol_data(symbol: str) -> Dict:
 
 def main():
     """
-    Función principal que obtiene datos de todos los símbolos y genera el JSON
+    Función principal
     """
     print("=" * 60)
-    print("COMPASS DATA FETCHER")
+    print("COMPASS DATA FETCHER V2 - PURE METRICS")
     print("=" * 60)
     print(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Símbolos a procesar: {len(SYMBOLS)}")
+    print()
+    print("Métricas:")
+    print("  • Risk Premium = IV - HV (opciones caras/baratas)")
+    print("  • Risk Reversal = Call IV - Put IV (sesgo direccional)")
     print("=" * 60)
     print()
     
@@ -277,8 +299,8 @@ def main():
         data = fetch_symbol_data(symbol)
         if data:
             results.append(data)
+        print()
     
-    print()
     print("=" * 60)
     print(f"Procesamiento completado: {len(results)}/{len(SYMBOLS)} símbolos")
     print("=" * 60)
@@ -287,10 +309,32 @@ def main():
         print("⚠️  ERROR: No se obtuvieron datos de ningún símbolo")
         return
     
+    # Estadísticas
+    risk_premiums = [r['risk_premium'] for r in results if r['risk_premium'] is not None]
+    risk_reversals = [r['risk_reversal'] for r in results if r['risk_reversal'] is not None]
+    
+    if risk_premiums:
+        print()
+        print("📊 Estadísticas del Mercado:")
+        print(f"  Risk Premium promedio: {np.mean(risk_premiums):+.2f}%")
+        print(f"  Risk Premium rango: {min(risk_premiums):+.2f}% a {max(risk_premiums):+.2f}%")
+        print(f"  Risk Reversal promedio: {np.mean(risk_reversals):+.2f}%")
+        print(f"  Risk Reversal rango: {min(risk_reversals):+.2f}% a {max(risk_reversals):+.2f}%")
+    
     # Generar JSON
     output = {
         'last_updated': datetime.now().isoformat(),
         'symbols_count': len(results),
+        'metrics': {
+            'risk_premium': 'IV - Historical Volatility (20-day)',
+            'risk_reversal': 'Call IV (25Δ) - Put IV (25Δ)',
+            'interpretation': {
+                'risk_premium_positive': 'Options expensive (market paying premium)',
+                'risk_premium_negative': 'Options cheap (no premium)',
+                'risk_reversal_positive': 'Call skew (bullish sentiment)',
+                'risk_reversal_negative': 'Put skew (bearish sentiment)'
+            }
+        },
         'data': results
     }
     
@@ -298,9 +342,16 @@ def main():
     with open('compass-data.json', 'w') as f:
         json.dump(output, f, indent=2)
     
+    print()
     print(f"✓ Archivo generado: compass-data.json")
     print(f"  - {len(results)} símbolos")
     print(f"  - Última actualización: {output['last_updated']}")
+    print()
+    print("🎯 Cuadrantes (nuevo sistema):")
+    print("  Q1 (↗): Prima Alta + Call Skew → Movimiento alcista esperado y caro")
+    print("  Q2 (↖): Prima Baja + Call Skew → Oportunidad alcista (opciones baratas)")
+    print("  Q3 (↙): Prima Baja + Put Skew → Protección barata disponible")
+    print("  Q4 (↘): Prima Alta + Put Skew → Pánico (protección muy cara)")
 
 
 if __name__ == "__main__":
