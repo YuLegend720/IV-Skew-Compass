@@ -2,87 +2,116 @@ name: Update Compass Data
 
 on:
   schedule:
+    # Runs at 21:30 UTC (4:30 PM EST) Monday-Friday
     - cron: '30 21 * * 1-5'
   workflow_dispatch:
+    # Allows manual triggering from GitHub UI
+
+permissions:
+  contents: write
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install yfinance pandas numpy
-    
-    - name: Fetch options data
-      run: |
-        python fetch_options_data.py
-    
-    - name: Commit and push changes
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        
-        # Pull latest changes first
-        git pull origin main --rebase || git pull origin main
-        
-        # Add and commit
-        git add compass-data.json
-        
-        # Only commit if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "Update compass data - $(date +'%Y-%m-%d %H:%M:%S')"
-          git push origin main
-        fi
-```
-
-5. **Commit changes**
-
-6. **AHORA SÍ ejecuta el workflow:**
-   - Actions → "Update Compass Data" → "Run workflow"
-
----
-
-## 🔍 ¿Por Qué Sigue Fallando?
-
-Estás ejecutando el **workflow viejo** que no tiene el `git pull`. Cada vez que lo ejecutas:
-```
-Workflow corre → Genera JSON → Intenta push → ❌ FALLA (hay cambios nuevos)
-```
-
-Necesitas el workflow **nuevo** que hace:
-```
-Workflow corre → Git pull (sincroniza) → Genera JSON → Push → ✅ FUNCIONA
-```
-
----
-
-## 🎯 IMPORTANTE: NO Ejecutes el Workflow Otra Vez
-
-**Hasta que no reemplaces el archivo `.github/workflows/update-data.yml`**
-
-Si lo ejecutas otra vez con el workflow viejo:
-- ❌ Volverá a fallar
-- ❌ Generará más commits locales que no se suben
-- ❌ Hará el problema peor
-
----
-
-## 📊 Los Datos Están Generados
-
-**Buena noticia:** El JSON se está generando correctamente. Puedes ver:
-```
-[main 0c237b0] Update compass data - 2026-01-11 15:58:01
- 1 file changed, 160 insertions(+)
- create mode 100644 compass-data.json
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper git operations
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'  # Cache pip dependencies
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy
+      
+      - name: Verify fetch script exists
+        run: |
+          if [ ! -f "fetch_options_data.py" ]; then
+            echo "Error: fetch_options_data.py not found"
+            exit 1
+          fi
+      
+      - name: Fetch options data
+        run: |
+          python fetch_options_data.py
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to fetch options data"
+            exit 1
+          fi
+      
+      - name: Verify data file was created
+        run: |
+          if [ ! -f "compass-data.json" ]; then
+            echo "Error: compass-data.json was not created"
+            exit 1
+          fi
+      
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+      
+      - name: Sync with remote and commit changes
+        run: |
+          # Pull latest changes from remote
+          echo "Pulling latest changes..."
+          git pull origin main --rebase || {
+            echo "Rebase failed, trying merge..."
+            git pull origin main --no-rebase || {
+              echo "Merge failed, aborting..."
+              exit 1
+            }
+          }
+          
+          # Stage the data file
+          git add compass-data.json
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes detected in compass-data.json"
+            echo "CHANGES_EXIST=false" >> $GITHUB_ENV
+          else
+            echo "Changes detected, committing..."
+            git commit -m "🔄 Update compass data - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo "CHANGES_EXIST=true" >> $GITHUB_ENV
+          fi
+      
+      - name: Push changes
+        if: env.CHANGES_EXIST == 'true'
+        run: |
+          # Retry push up to 3 times if it fails
+          max_attempts=3
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Push attempt $attempt of $max_attempts..."
+            
+            if git push origin main; then
+              echo "Successfully pushed changes"
+              exit 0
+            fi
+            
+            echo "Push failed, pulling latest changes and retrying..."
+            git pull origin main --rebase || git pull origin main
+            
+            attempt=$((attempt + 1))
+            sleep 2
+          done
+          
+          echo "Failed to push after $max_attempts attempts"
+          exit 1
+      
+      - name: Upload data as artifact (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compass-data-failed-${{ github.run_number }}
+          path: compass-data.json
+          retention-days: 7
