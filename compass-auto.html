@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compass Â· IV & Skew Analysis</title>
+    <title>Compass · Risk Premium & Risk Reversal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Merriweather:wght@300;700;900&display=swap" rel="stylesheet">
@@ -71,6 +71,17 @@
             text-transform: uppercase;
         }
 
+        .version-badge {
+            display: inline-block;
+            background: var(--color-accent-green);
+            color: var(--color-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+
         .metrics-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -128,24 +139,6 @@
             font-family: 'Merriweather', serif;
             font-size: 1.5rem;
             font-weight: 700;
-        }
-
-        .legend {
-            display: flex;
-            gap: 2rem;
-            font-size: 0.8125rem;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
         }
 
         #compass {
@@ -228,15 +221,6 @@
             font-weight: 600;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--color-border);
-            color: var(--color-text-dim);
-            font-size: 0.8125rem;
-        }
-
         .info-panel {
             background: var(--color-surface);
             border-radius: 12px;
@@ -264,30 +248,23 @@
         }
 
         .info-panel li::before {
-            content: "â†’";
+            content: "→";
             color: var(--color-accent-blue);
             margin-right: 0.5rem;
         }
 
-        .demo-badge {
-            display: inline-block;
-            background: var(--color-accent-orange);
-            color: var(--color-bg);
-            padding: 0.25rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: 1rem;
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-dim);
+            font-size: 0.8125rem;
         }
 
         @media (max-width: 768px) {
             .title {
                 font-size: 2rem;
-            }
-            
-            .legend {
-                flex-direction: column;
-                gap: 0.5rem;
             }
             
             #compass {
@@ -305,43 +282,33 @@
         <div class="header">
             <h1 class="title">
                 Compass
-                <span class="demo-badge">DEMO</span>
+                <span class="version-badge">V2 PURE</span>
             </h1>
-            <p class="subtitle">IV Rank vs Risk Reversal Rank Â· Options Market Analysis</p>
+            <p class="subtitle">Risk Premium (IV-HV) vs Risk Reversal (Call-Put) · Real Metrics Only</p>
         </div>
 
         <div class="metrics-bar">
             <div class="metric-card">
-                <div class="metric-label">SÃ­mbolos</div>
+                <div class="metric-label">Símbolos</div>
                 <div class="metric-value" id="totalSymbols">--</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">IV Promedio</div>
-                <div class="metric-value" id="avgIV">--</div>
+                <div class="metric-label">Risk Premium Promedio</div>
+                <div class="metric-value" id="avgRP">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Risk Reversal Promedio</div>
+                <div class="metric-value" id="avgRR">--</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Estado</div>
-                <div class="metric-value" style="font-size: 1.25rem;">Datos de Ejemplo</div>
+                <div class="metric-value" style="font-size: 1.25rem;" id="dataStatus">Cargando...</div>
             </div>
         </div>
 
         <div class="chart-container">
             <div class="chart-header">
                 <h2 class="chart-title">Market Positioning Map</h2>
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: var(--color-accent-green);"></div>
-                        <span>Bullish</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: var(--color-accent-orange);"></div>
-                        <span>Neutral</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: var(--color-accent-red);"></div>
-                        <span>Bearish</span>
-                    </div>
-                </div>
             </div>
 
             <canvas id="compass"></canvas>
@@ -349,153 +316,114 @@
 
         <div class="quadrant-labels">
             <div class="quadrant-label q1">
-                <strong>Q1: Alto IV, Call Skew</strong>
-                <span>Volatilidad alta + expectativas alcistas â†’ Evento prÃ³ximo o rally esperado</span>
+                <strong>Q1: Prima Alta + Call Skew</strong>
+                <span>Opciones caras + optimismo → Mercado paga prima por movimiento alcista esperado</span>
             </div>
             <div class="quadrant-label q2">
-                <strong>Q2: Bajo IV, Call Skew</strong>
-                <span>Opciones baratas + sesgo alcista â†’ Oportunidad para comprar calls</span>
+                <strong>Q2: Prima Baja + Call Skew</strong>
+                <span>Opciones baratas + optimismo → ⭐ Oportunidad para comprar calls</span>
             </div>
             <div class="quadrant-label q3">
-                <strong>Q3: Bajo IV, Put Skew</strong>
-                <span>Baja volatilidad + protecciÃ³n bajista â†’ Inicio de cautela</span>
+                <strong>Q3: Prima Baja + Put Skew</strong>
+                <span>Opciones baratas + cautela → Protección disponible a buen precio</span>
             </div>
             <div class="quadrant-label q4">
-                <strong>Q4: Alto IV, Put Skew</strong>
-                <span>Volatilidad alta + miedo â†’ ProtecciÃ³n cara, mercado nervioso</span>
+                <strong>Q4: Prima Alta + Put Skew</strong>
+                <span>Opciones caras + miedo → Pánico, protección muy cara (sell vol)</span>
             </div>
         </div>
 
         <div class="info-panel">
-            <h3>CÃ³mo interpretar el Compass</h3>
+            <h3>Cómo interpretar el Compass V2</h3>
             <ul>
-                <li><strong>Eje X (IV Rank):</strong> DÃ³nde estÃ¡ la volatilidad implÃ­cita actual vs el Ãºltimo aÃ±o (0-100%)</li>
-                <li><strong>Eje Y (Skew Rank):</strong> Diferencia entre IV de calls vs puts</li>
-                <li><strong>Cada punto:</strong> Representa un stock/futuro con su posicionamiento actual</li>
-                <li><strong>Hover sobre puntos:</strong> Ver detalles especÃ­ficos del sÃ­mbolo</li>
+                <li><strong>Eje X (Risk Premium):</strong> IV actual - Volatilidad Realizada (20d). Positivo = opciones caras, Negativo = opciones baratas</li>
+                <li><strong>Eje Y (Risk Reversal):</strong> Call IV - Put IV. Positivo = call skew (bullish), Negativo = put skew (bearish)</li>
+                <li><strong>Ambas métricas son reales:</strong> Sin aproximaciones ni invenciones. Calculadas directamente de los datos del mercado</li>
+                <li><strong>Hover sobre puntos:</strong> Ver detalles específicos del símbolo incluyendo IV/HV ratio</li>
             </ul>
         </div>
 
         <div class="footer">
-            <p>Datos de ejemplo para demostraciÃ³n Â· Para datos reales, ver instrucciones abajo</p>
+            <p>Datos de Yahoo Finance · Actualización automática diaria · Solo métricas reales (sin aproximaciones)</p>
         </div>
     </div>
 
     <div class="tooltip" id="tooltip">
         <div class="tooltip-symbol" id="tooltipSymbol"></div>
         <div class="tooltip-row">
-            <span class="tooltip-label">IV Rank:</span>
-            <span class="tooltip-value" id="tooltipIVRank"></span>
+            <span class="tooltip-label">Risk Premium:</span>
+            <span class="tooltip-value" id="tooltipRP"></span>
         </div>
         <div class="tooltip-row">
-            <span class="tooltip-label">Skew Rank:</span>
-            <span class="tooltip-value" id="tooltipSkewRank"></span>
+            <span class="tooltip-label">Risk Reversal:</span>
+            <span class="tooltip-value" id="tooltipRR"></span>
         </div>
         <div class="tooltip-row">
             <span class="tooltip-label">Current IV:</span>
             <span class="tooltip-value" id="tooltipIV"></span>
         </div>
         <div class="tooltip-row">
-            <span class="tooltip-label">Risk Reversal:</span>
-            <span class="tooltip-value" id="tooltipRR"></span>
+            <span class="tooltip-label">HV (20d):</span>
+            <span class="tooltip-value" id="tooltipHV"></span>
+        </div>
+        <div class="tooltip-row">
+            <span class="tooltip-label">IV/HV Ratio:</span>
+            <span class="tooltip-value" id="tooltipRatio"></span>
         </div>
     </div>
 
     <script>
-        // DATOS DE EJEMPLO (fallback si no se puede cargar el JSON)
-        const EXAMPLE_DATA = [
-            { symbol: 'AAPL', iv_rank: 45.2, skew_rank: 68.5, current_iv: 28.3, risk_reversal: 2.5 },
-            { symbol: 'MSFT', iv_rank: 52.1, skew_rank: 72.3, current_iv: 25.1, risk_reversal: 3.1 },
-            { symbol: 'GOOGL', iv_rank: 38.7, skew_rank: 65.2, current_iv: 31.2, risk_reversal: 1.8 },
-            { symbol: 'AMZN', iv_rank: 61.3, skew_rank: 55.8, current_iv: 35.6, risk_reversal: 0.5 },
-            { symbol: 'META', iv_rank: 55.9, skew_rank: 78.2, current_iv: 42.1, risk_reversal: 4.2 },
-            { symbol: 'NVDA', iv_rank: 72.4, skew_rank: 82.5, current_iv: 51.3, risk_reversal: 5.8 },
-            { symbol: 'TSLA', iv_rank: 78.3, skew_rank: 45.2, current_iv: 58.7, risk_reversal: -1.2 },
-            { symbol: 'JPM', iv_rank: 32.1, skew_rank: 38.5, current_iv: 22.5, risk_reversal: -2.5 },
-            { symbol: 'BAC', iv_rank: 28.5, skew_rank: 35.2, current_iv: 24.8, risk_reversal: -2.8 },
-            { symbol: 'WFC', iv_rank: 35.2, skew_rank: 42.1, current_iv: 21.3, risk_reversal: -1.9 },
-            { symbol: 'DIS', iv_rank: 48.7, skew_rank: 58.3, current_iv: 29.5, risk_reversal: 0.8 },
-            { symbol: 'NFLX', iv_rank: 68.2, skew_rank: 62.1, current_iv: 45.2, risk_reversal: 1.5 },
-            { symbol: 'AMD', iv_rank: 65.3, skew_rank: 75.8, current_iv: 48.9, risk_reversal: 3.8 },
-            { symbol: 'INTC', iv_rank: 42.1, skew_rank: 48.5, current_iv: 32.1, risk_reversal: -0.5 },
-            { symbol: 'SPY', iv_rank: 25.8, skew_rank: 32.5, current_iv: 15.2, risk_reversal: -3.2 },
-            { symbol: 'QQQ', iv_rank: 32.5, skew_rank: 45.8, current_iv: 18.5, risk_reversal: -1.5 },
-            { symbol: 'IWM', iv_rank: 38.2, skew_rank: 28.5, current_iv: 22.8, risk_reversal: -4.2 },
-            { symbol: 'TLT', iv_rank: 58.3, skew_rank: 35.2, current_iv: 12.5, risk_reversal: -2.8 },
-            { symbol: 'COIN', iv_rank: 82.5, skew_rank: 55.2, current_iv: 68.5, risk_reversal: 0.2 },
-            { symbol: 'PLTR', iv_rank: 75.2, skew_rank: 85.3, current_iv: 62.1, risk_reversal: 6.5 },
-            { symbol: 'SOFI', iv_rank: 71.8, skew_rank: 68.5, current_iv: 55.3, risk_reversal: 2.8 },
-            { symbol: 'UBER', iv_rank: 52.3, skew_rank: 62.1, current_iv: 38.5, risk_reversal: 1.8 },
-        ];
-
         // Variables globales
         let compassData = [];
         let lastUpdated = null;
-        let isRealData = false;
 
         const canvas = document.getElementById('compass');
         const ctx = canvas.getContext('2d');
         const tooltip = document.getElementById('tooltip');
 
-        // CONFIGURACIÓN: Cambia esto con tu usuario y repo de GitHub
-        // Formato: 'https://raw.githubusercontent.com/TU_USUARIO/TU_REPO/main/compass-data.json'
-        const DATA_URL = './compass-data.json'; // Primero intenta cargar localmente
+        // CONFIGURACIÓN: Cambia esto con tu URL de GitHub
         const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/YuLegend720/IV-Skew-Compass/main/compass-data.json';
-        // ConfiguraciÃ³n del canvas
+        const LOCAL_DATA_URL = './compass-data.json';
+
+        // Rangos para los ejes
+        const RP_MIN = -15;  // Risk Premium mínimo
+        const RP_MAX = 20;   // Risk Premium máximo
+        const RR_MIN = -12;  // Risk Reversal mínimo
+        const RR_MAX = 12;   // Risk Reversal máximo
+
         function resizeCanvas() {
             const container = canvas.parentElement;
             canvas.width = container.clientWidth - 64;
             canvas.height = 600;
         }
 
-        // Cargar datos desde JSON
         async function loadData() {
-            const statusElement = document.querySelector('.metric-card:last-child .metric-value');
+            const statusElement = document.getElementById('dataStatus');
             statusElement.textContent = 'Cargando...';
             
             try {
-                // Intentar cargar desde GitHub primero (si está configurado)
-                if (GITHUB_DATA_URL) {
-                    try {
-                        const response = await fetch(GITHUB_DATA_URL);
-                        if (response.ok) {
-                            const jsonData = await response.json();
-                            compassData = jsonData.data;
-                            lastUpdated = new Date(jsonData.last_updated);
-                            isRealData = true;
-                            statusElement.innerHTML = `Datos Reales<br><small style="font-size: 0.7rem; opacity: 0.7;">${formatDate(lastUpdated)}</small>`;
-                            console.log('✓ Datos cargados desde GitHub');
-                            return;
-                        }
-                    } catch (e) {
-                        console.log('GitHub no disponible, intentando carga local...');
-                    }
+                // Intentar GitHub primero
+                let response = await fetch(GITHUB_DATA_URL);
+                if (!response.ok) {
+                    // Si falla, intentar local
+                    response = await fetch(LOCAL_DATA_URL);
                 }
                 
-                // Intentar cargar localmente
-                try {
-                    const response = await fetch(DATA_URL);
-                    if (response.ok) {
-                        const jsonData = await response.json();
-                        compassData = jsonData.data;
-                        lastUpdated = new Date(jsonData.last_updated);
-                        isRealData = true;
-                        statusElement.innerHTML = `Datos Reales<br><small style="font-size: 0.7rem; opacity: 0.7;">${formatDate(lastUpdated)}</small>`;
-                        console.log('✓ Datos cargados localmente');
-                        return;
-                    }
-                } catch (e) {
-                    console.log('Archivo local no encontrado');
+                if (!response.ok) {
+                    throw new Error('No se pudo cargar datos');
                 }
                 
-                // Si todo falla, usar datos de ejemplo
-                throw new Error('No se pudo cargar datos reales');
+                const jsonData = await response.json();
+                compassData = jsonData.data;
+                lastUpdated = new Date(jsonData.last_updated);
+                
+                statusElement.innerHTML = `Datos Reales<br><small style="font-size: 0.7rem; opacity: 0.7;">${formatDate(lastUpdated)}</small>`;
+                console.log('✓ Datos cargados:', compassData.length, 'símbolos');
                 
             } catch (error) {
-                console.log('Usando datos de ejemplo');
-                compassData = EXAMPLE_DATA;
-                isRealData = false;
-                statusElement.textContent = 'Datos de Ejemplo';
+                console.error('Error cargando datos:', error);
+                statusElement.textContent = 'Error al cargar';
+                compassData = [];
             }
         }
 
@@ -511,13 +439,20 @@
         }
 
         function initialize() {
+            if (compassData.length === 0) {
+                console.error('No hay datos para mostrar');
+                return;
+            }
+
             // Actualizar métricas
             document.getElementById('totalSymbols').textContent = compassData.length;
             
-            const avgIV = compassData.reduce((sum, item) => sum + item.current_iv, 0) / compassData.length;
-            document.getElementById('avgIV').textContent = avgIV.toFixed(1) + '%';
+            const avgRP = compassData.reduce((sum, item) => sum + (item.risk_premium || 0), 0) / compassData.length;
+            document.getElementById('avgRP').textContent = (avgRP >= 0 ? '+' : '') + avgRP.toFixed(1) + '%';
             
-            // Dibujar
+            const avgRR = compassData.reduce((sum, item) => sum + (item.risk_reversal || 0), 0) / compassData.length;
+            document.getElementById('avgRR').textContent = (avgRR >= 0 ? '+' : '') + avgRR.toFixed(1) + '%';
+            
             drawCompass();
         }
 
@@ -539,15 +474,19 @@
             const rightX = width - padding;
             const bottomY = height - padding;
             
+            // Q1: Alta prima + Call skew (arriba-derecha)
             ctx.fillStyle = 'rgba(16, 185, 129, 0.05)';
             ctx.fillRect(midX, padding, rightX - midX, midY - padding);
             
+            // Q2: Baja prima + Call skew (arriba-izquierda)
             ctx.fillStyle = 'rgba(251, 146, 60, 0.05)';
             ctx.fillRect(padding, padding, midX - padding, midY - padding);
             
+            // Q3: Baja prima + Put skew (abajo-izquierda)
             ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
             ctx.fillRect(padding, midY, midX - padding, bottomY - midY);
             
+            // Q4: Alta prima + Put skew (abajo-derecha)
             ctx.fillStyle = 'rgba(59, 130, 246, 0.05)';
             ctx.fillRect(midX, midY, rightX - midX, bottomY - midY);
         }
@@ -556,68 +495,82 @@
             ctx.strokeStyle = '#1e2433';
             ctx.lineWidth = 2;
             
+            // Eje X
             ctx.beginPath();
             ctx.moveTo(padding, height - padding);
             ctx.lineTo(width - padding, height - padding);
             ctx.stroke();
             
+            // Eje Y
             ctx.beginPath();
             ctx.moveTo(padding, padding);
             ctx.lineTo(padding, height - padding);
             ctx.stroke();
             
+            // Líneas centrales (en 0)
             ctx.strokeStyle = '#1e2433';
             ctx.setLineDash([5, 5]);
-            const midX = padding + (width - 2 * padding) / 2;
+            
+            // Línea vertical en Risk Premium = 0
+            const zeroX = padding + ((0 - RP_MIN) / (RP_MAX - RP_MIN)) * (width - 2 * padding);
             ctx.beginPath();
-            ctx.moveTo(midX, padding);
-            ctx.lineTo(midX, height - padding);
+            ctx.moveTo(zeroX, padding);
+            ctx.lineTo(zeroX, height - padding);
             ctx.stroke();
             
-            const midY = padding + (height - 2 * padding) / 2;
+            // Línea horizontal en Risk Reversal = 0
+            const zeroY = height - padding - ((0 - RR_MIN) / (RR_MAX - RR_MIN)) * (height - 2 * padding);
             ctx.beginPath();
-            ctx.moveTo(padding, midY);
-            ctx.lineTo(width - padding, midY);
+            ctx.moveTo(padding, zeroY);
+            ctx.lineTo(width - padding, zeroY);
             ctx.stroke();
+            
             ctx.setLineDash([]);
             
+            // Labels
             ctx.fillStyle = '#64748b';
             ctx.font = '12px IBM Plex Mono';
             ctx.textAlign = 'center';
             
-            ctx.fillText('0%', padding, height - padding + 20);
-            ctx.fillText('50%', midX, height - padding + 20);
-            ctx.fillText('100%', width - padding, height - padding + 20);
-            ctx.fillText('IV Rank â†’', width / 2, height - 10);
+            // Eje X labels
+            ctx.fillText(`${RP_MIN}%`, padding, height - padding + 20);
+            ctx.fillText('0%', zeroX, height - padding + 20);
+            ctx.fillText(`+${RP_MAX}%`, width - padding, height - padding + 20);
+            ctx.fillText('Risk Premium (IV - HV) →', width / 2, height - 10);
             
+            // Eje Y labels
             ctx.save();
             ctx.translate(20, height / 2);
             ctx.rotate(-Math.PI / 2);
             ctx.textAlign = 'center';
-            ctx.fillText('â† Put Skew | Call Skew â†’', 0, 0);
+            ctx.fillText('← Put Skew | Call Skew →', 0, 0);
             ctx.restore();
             
             ctx.textAlign = 'right';
-            ctx.fillText('0%', padding - 10, midY + 4);
-            ctx.fillText('100%', padding - 10, padding + 4);
+            ctx.fillText(`${RR_MIN}%`, padding - 10, height - padding + 4);
+            ctx.fillText('0%', padding - 10, zeroY + 4);
+            ctx.fillText(`+${RR_MAX}%`, padding - 10, padding + 4);
         }
 
         function drawPoints(width, height, padding) {
             compassData.forEach(item => {
-                const x = padding + (item.iv_rank / 100) * (width - 2 * padding);
-                const y = height - padding - (item.skew_rank / 100) * (height - 2 * padding);
+                // Normalizar a coordenadas del canvas
+                const x = padding + ((item.risk_premium - RP_MIN) / (RP_MAX - RP_MIN)) * (width - 2 * padding);
+                const y = height - padding - ((item.risk_reversal - RR_MIN) / (RR_MAX - RR_MIN)) * (height - 2 * padding);
                 
+                // Color según cuadrante
                 let color;
-                if (item.iv_rank >= 50 && item.skew_rank >= 50) {
-                    color = '#10b981';
-                } else if (item.iv_rank < 50 && item.skew_rank >= 50) {
-                    color = '#fb923c';
-                } else if (item.iv_rank < 50 && item.skew_rank < 50) {
-                    color = '#ef4444';
+                if (item.risk_premium >= 0 && item.risk_reversal >= 0) {
+                    color = '#10b981';  // Q1: Verde
+                } else if (item.risk_premium < 0 && item.risk_reversal >= 0) {
+                    color = '#fb923c';  // Q2: Naranja
+                } else if (item.risk_premium < 0 && item.risk_reversal < 0) {
+                    color = '#ef4444';  // Q3: Rojo
                 } else {
-                    color = '#3b82f6';
+                    color = '#3b82f6';  // Q4: Azul
                 }
                 
+                // Dibujar punto
                 ctx.fillStyle = color;
                 ctx.beginPath();
                 ctx.arc(x, y, 6, 0, 2 * Math.PI);
@@ -627,6 +580,7 @@
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 
+                // Guardar coordenadas para tooltip
                 item._x = x;
                 item._y = y;
             });
@@ -652,10 +606,11 @@
             
             if (hovered) {
                 document.getElementById('tooltipSymbol').textContent = hovered.symbol;
-                document.getElementById('tooltipIVRank').textContent = hovered.iv_rank.toFixed(1) + '%';
-                document.getElementById('tooltipSkewRank').textContent = hovered.skew_rank.toFixed(1) + '%';
+                document.getElementById('tooltipRP').textContent = (hovered.risk_premium >= 0 ? '+' : '') + hovered.risk_premium.toFixed(2) + '%';
+                document.getElementById('tooltipRR').textContent = (hovered.risk_reversal >= 0 ? '+' : '') + hovered.risk_reversal.toFixed(2) + '%';
                 document.getElementById('tooltipIV').textContent = hovered.current_iv.toFixed(1) + '%';
-                document.getElementById('tooltipRR').textContent = hovered.risk_reversal.toFixed(2) + '%';
+                document.getElementById('tooltipHV').textContent = hovered.hv_20.toFixed(1) + '%';
+                document.getElementById('tooltipRatio').textContent = hovered.iv_hv_ratio ? hovered.iv_hv_ratio.toFixed(2) + 'x' : 'N/A';
                 
                 tooltip.style.left = (e.clientX + 15) + 'px';
                 tooltip.style.top = (e.clientY + 15) + 'px';
@@ -674,13 +629,15 @@
 
         window.addEventListener('load', async () => {
             resizeCanvas();
-            await loadData(); // Cargar datos primero
+            await loadData();
             initialize();
         });
 
         window.addEventListener('resize', () => {
             resizeCanvas();
-            drawCompass();
+            if (compassData.length > 0) {
+                drawCompass();
+            }
         });
     </script>
 </body>
