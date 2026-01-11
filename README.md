@@ -1,2 +1,2 @@
 # IV-Skew-Compass
-Análisis automatizado de opciones
+Análisis automatizado de opciones.
