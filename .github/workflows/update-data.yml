@@ -2,10 +2,7 @@ name: Update Compass Data
 
 on:
   schedule:
-    # Ejecutar de lunes a viernes a las 9:30 PM UTC (después del cierre del mercado US)
     - cron: '30 21 * * 1-5'
-  
-  # Permitir ejecución manual desde GitHub
   workflow_dispatch:
 
 jobs:
@@ -15,8 +12,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch full history
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -36,23 +31,58 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
+        
+        # Pull latest changes first
+        git pull origin main --rebase || git pull origin main
+        
+        # Add and commit
         git add compass-data.json
         
-        # Check if there are changes to commit
+        # Only commit if there are changes
         if git diff --staged --quiet; then
           echo "No changes to commit"
-          exit 0
+        else
+          git commit -m "Update compass data - $(date +'%Y-%m-%d %H:%M:%S')"
+          git push origin main
         fi
-        
-        # Commit changes
-        git commit -m "Update compass data - $(date +'%Y-%m-%d %H:%M:%S')"
-        
-        # Pull latest changes with rebase
-        git pull --rebase origin main || {
-          echo "Rebase failed, trying merge strategy"
-          git rebase --abort
-          git pull origin main --no-rebase
-        }
-        
-        # Push changes
-        git push origin main
+```
+
+5. **Commit changes**
+
+6. **AHORA SÍ ejecuta el workflow:**
+   - Actions → "Update Compass Data" → "Run workflow"
+
+---
+
+## 🔍 ¿Por Qué Sigue Fallando?
+
+Estás ejecutando el **workflow viejo** que no tiene el `git pull`. Cada vez que lo ejecutas:
+```
+Workflow corre → Genera JSON → Intenta push → ❌ FALLA (hay cambios nuevos)
+```
+
+Necesitas el workflow **nuevo** que hace:
+```
+Workflow corre → Git pull (sincroniza) → Genera JSON → Push → ✅ FUNCIONA
+```
+
+---
+
+## 🎯 IMPORTANTE: NO Ejecutes el Workflow Otra Vez
+
+**Hasta que no reemplaces el archivo `.github/workflows/update-data.yml`**
+
+Si lo ejecutas otra vez con el workflow viejo:
+- ❌ Volverá a fallar
+- ❌ Generará más commits locales que no se suben
+- ❌ Hará el problema peor
+
+---
+
+## 📊 Los Datos Están Generados
+
+**Buena noticia:** El JSON se está generando correctamente. Puedes ver:
+```
+[main 0c237b0] Update compass data - 2026-01-11 15:58:01
+ 1 file changed, 160 insertions(+)
+ create mode 100644 compass-data.json
