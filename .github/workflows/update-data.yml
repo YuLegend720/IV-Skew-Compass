@@ -15,6 +15,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,4 +37,22 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add compass-data.json
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Update compass data - $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+          exit 0
+        fi
+        
+        # Commit changes
+        git commit -m "Update compass data - $(date +'%Y-%m-%d %H:%M:%S')"
+        
+        # Pull latest changes with rebase
+        git pull --rebase origin main || {
+          echo "Rebase failed, trying merge strategy"
+          git rebase --abort
+          git pull origin main --no-rebase
+        }
+        
+        # Push changes
+        git push origin main
