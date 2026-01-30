@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-01-29T22:00:41.790529",
+  "last_updated": "2026-01-30T21:54:46.678396",
   "symbols_count": 22,
   "metrics": {
     "risk_premium": "IV - Historical Volatility (20-day)",
@@ -14,179 +14,179 @@
   "data": [
     {
       "symbol": "AAPL",
-      "risk_premium": 15.61,
-      "risk_reversal": -17.39,
-      "current_iv": 35.61,
-      "hv_20": 20.0,
-      "iv_hv_ratio": 1.78
+      "risk_premium": 5.83,
+      "risk_reversal": -6.62,
+      "current_iv": 25.99,
+      "hv_20": 20.16,
+      "iv_hv_ratio": 1.29
     },
     {
       "symbol": "MSFT",
-      "risk_premium": -15.14,
-      "risk_reversal": 0.03,
-      "current_iv": 27.54,
+      "risk_premium": -17.18,
+      "risk_reversal": -0.93,
+      "current_iv": 25.5,
       "hv_20": 42.68,
-      "iv_hv_ratio": 0.65
+      "iv_hv_ratio": 0.6
     },
     {
       "symbol": "GOOGL",
-      "risk_premium": 20.44,
-      "risk_reversal": -0.99,
-      "current_iv": 38.52,
-      "hv_20": 18.08,
-      "iv_hv_ratio": 2.13
+      "risk_premium": 22.11,
+      "risk_reversal": -1.42,
+      "current_iv": 40.11,
+      "hv_20": 18.0,
+      "iv_hv_ratio": 2.23
     },
     {
       "symbol": "AMZN",
-      "risk_premium": 14.29,
-      "risk_reversal": -1.6,
-      "current_iv": 42.84,
-      "hv_20": 28.55,
-      "iv_hv_ratio": 1.5
+      "risk_premium": 15.92,
+      "risk_reversal": -1.46,
+      "current_iv": 44.61,
+      "hv_20": 28.69,
+      "iv_hv_ratio": 1.55
     },
     {
       "symbol": "META",
-      "risk_premium": -16.16,
-      "risk_reversal": -2.28,
-      "current_iv": 31.66,
-      "hv_20": 47.82,
-      "iv_hv_ratio": 0.66
+      "risk_premium": -19.51,
+      "risk_reversal": -1.83,
+      "current_iv": 29.68,
+      "hv_20": 49.19,
+      "iv_hv_ratio": 0.6
     },
     {
       "symbol": "NVDA",
-      "risk_premium": 18.48,
-      "risk_reversal": -5.86,
-      "current_iv": 44.2,
-      "hv_20": 25.72,
-      "iv_hv_ratio": 1.72
+      "risk_premium": 18.36,
+      "risk_reversal": -5.93,
+      "current_iv": 44.14,
+      "hv_20": 25.78,
+      "iv_hv_ratio": 1.71
     },
     {
       "symbol": "TSLA",
-      "risk_premium": 4.73,
-      "risk_reversal": -0.82,
-      "current_iv": 42.34,
-      "hv_20": 37.61,
-      "iv_hv_ratio": 1.13
+      "risk_premium": 2.36,
+      "risk_reversal": 0.68,
+      "current_iv": 42.13,
+      "hv_20": 39.77,
+      "iv_hv_ratio": 1.06
     },
     {
       "symbol": "JPM",
-      "risk_premium": -2.88,
-      "risk_reversal": -6.03,
-      "current_iv": 23.83,
+      "risk_premium": -2.84,
+      "risk_reversal": -4.58,
+      "current_iv": 23.87,
       "hv_20": 26.71,
       "iv_hv_ratio": 0.89
     },
     {
       "symbol": "BAC",
-      "risk_premium": -0.18,
-      "risk_reversal": -6.05,
-      "current_iv": 24.15,
-      "hv_20": 24.33,
-      "iv_hv_ratio": 0.99
+      "risk_premium": -0.46,
+      "risk_reversal": -5.18,
+      "current_iv": 23.89,
+      "hv_20": 24.35,
+      "iv_hv_ratio": 0.98
     },
     {
       "symbol": "WFC",
-      "risk_premium": -3.11,
-      "risk_reversal": -6.93,
-      "current_iv": 25.29,
-      "hv_20": 28.4,
-      "iv_hv_ratio": 0.89
+      "risk_premium": -2.78,
+      "risk_reversal": -5.32,
+      "current_iv": 25.38,
+      "hv_20": 28.16,
+      "iv_hv_ratio": 0.9
     },
     {
       "symbol": "DIS",
-      "risk_premium": 20.13,
-      "risk_reversal": -0.22,
-      "current_iv": 43.16,
-      "hv_20": 23.03,
-      "iv_hv_ratio": 1.87
+      "risk_premium": 16.46,
+      "risk_reversal": -3.87,
+      "current_iv": 39.69,
+      "hv_20": 23.23,
+      "iv_hv_ratio": 1.71
     },
     {
       "symbol": "NFLX",
-      "risk_premium": 10.06,
-      "risk_reversal": 1.25,
-      "current_iv": 31.14,
-      "hv_20": 21.08,
+      "risk_premium": 10.11,
+      "risk_reversal": -0.2,
+      "current_iv": 31.39,
+      "hv_20": 21.28,
       "iv_hv_ratio": 1.48
     },
     {
       "symbol": "AMD",
-      "risk_premium": 13.07,
-      "risk_reversal": -0.13,
-      "current_iv": 58.96,
-      "hv_20": 45.89,
-      "iv_hv_ratio": 1.28
+      "risk_premium": 8.44,
+      "risk_reversal": -0.23,
+      "current_iv": 60.43,
+      "hv_20": 51.99,
+      "iv_hv_ratio": 1.16
     },
     {
       "symbol": "INTC",
-      "risk_premium": -46.72,
-      "risk_reversal": 4.27,
-      "current_iv": 60.03,
-      "hv_20": 106.75,
-      "iv_hv_ratio": 0.56
+      "risk_premium": -53.58,
+      "risk_reversal": 3.47,
+      "current_iv": 54.97,
+      "hv_20": 108.55,
+      "iv_hv_ratio": 0.51
     },
     {
       "symbol": "SPY",
-      "risk_premium": 4.24,
-      "risk_reversal": -10.19,
-      "current_iv": 14.83,
-      "hv_20": 10.59,
-      "iv_hv_ratio": 1.4
+      "risk_premium": 4.63,
+      "risk_reversal": -11.54,
+      "current_iv": 14.9,
+      "hv_20": 10.27,
+      "iv_hv_ratio": 1.45
     },
     {
       "symbol": "QQQ",
-      "risk_premium": 6.97,
-      "risk_reversal": -11.92,
-      "current_iv": 20.14,
-      "hv_20": 13.17,
-      "iv_hv_ratio": 1.53
+      "risk_premium": 7.03,
+      "risk_reversal": -12.94,
+      "current_iv": 20.6,
+      "hv_20": 13.57,
+      "iv_hv_ratio": 1.52
     },
     {
       "symbol": "IWM",
-      "risk_premium": 5.34,
-      "risk_reversal": -7.91,
-      "current_iv": 20.48,
-      "hv_20": 15.14,
-      "iv_hv_ratio": 1.35
+      "risk_premium": 5.4,
+      "risk_reversal": -7.75,
+      "current_iv": 21.27,
+      "hv_20": 15.87,
+      "iv_hv_ratio": 1.34
     },
     {
       "symbol": "TLT",
-      "risk_premium": 3.39,
-      "risk_reversal": -2.05,
-      "current_iv": 12.3,
-      "hv_20": 8.91,
-      "iv_hv_ratio": 1.38
+      "risk_premium": 3.41,
+      "risk_reversal": 0.98,
+      "current_iv": 12.08,
+      "hv_20": 8.67,
+      "iv_hv_ratio": 1.39
     },
     {
       "symbol": "COIN",
-      "risk_premium": 7.74,
-      "risk_reversal": 0.59,
-      "current_iv": 61.59,
-      "hv_20": 53.85,
-      "iv_hv_ratio": 1.14
+      "risk_premium": 9.31,
+      "risk_reversal": -0.46,
+      "current_iv": 63.11,
+      "hv_20": 53.8,
+      "iv_hv_ratio": 1.17
     },
     {
       "symbol": "PLTR",
-      "risk_premium": 22.67,
-      "risk_reversal": -0.31,
-      "current_iv": 62.08,
-      "hv_20": 39.41,
-      "iv_hv_ratio": 1.58
+      "risk_premium": 21.7,
+      "risk_reversal": -2.03,
+      "current_iv": 62.1,
+      "hv_20": 40.4,
+      "iv_hv_ratio": 1.54
     },
     {
       "symbol": "SOFI",
-      "risk_premium": 16.02,
-      "risk_reversal": 0.24,
-      "current_iv": 64.77,
-      "hv_20": 48.75,
-      "iv_hv_ratio": 1.33
+      "risk_premium": 1.77,
+      "risk_reversal": 2.1,
+      "current_iv": 54.87,
+      "hv_20": 53.1,
+      "iv_hv_ratio": 1.03
     },
     {
       "symbol": "UBER",
-      "risk_premium": 16.34,
-      "risk_reversal": -0.73,
-      "current_iv": 47.35,
-      "hv_20": 31.01,
-      "iv_hv_ratio": 1.53
+      "risk_premium": 14.74,
+      "risk_reversal": -1.81,
+      "current_iv": 46.54,
+      "hv_20": 31.8,
+      "iv_hv_ratio": 1.46
     }
   ]
 }
